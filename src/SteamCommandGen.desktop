@@ -1,0 +1,10 @@
+[Desktop Entry]
+Name=SteamCommandGen
+Comment=Generador de Comandos para steam
+Exec=SteamCommanderGen.py
+Icon=SteamCommandGen
+Terminal=false
+Type=Application
+Categories=Utility;
+StartupNotify=true
+StartupWMClass=SteamCommandGen
