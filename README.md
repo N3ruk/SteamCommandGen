@@ -45,3 +45,4 @@ Descarga el `.AppImage` desde la sección **Releases** y ejecuta:
 
 chmod +x SteamCommandGen-x86_64.AppImage
 ./SteamCommandGen-x86_64.AppImage
+
