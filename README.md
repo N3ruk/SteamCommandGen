@@ -130,4 +130,4 @@ Las versiones empaquetadas como **AppImage** o **.deb** no requieren ejecutar ma
 
 # 📄 Licencia
 
-Consulta el archivo `LICENSE` incluido en este repositorio para conocer las condiciones de uso y distribución del proyecto.
+Consulta el archivo **[License](https://github.com/neruk123-droid/SteamCommandGen/blob/main/LICENSE)** incluido en este repositorio para conocer las condiciones de uso y distribución del proyecto.
