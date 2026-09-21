@@ -4,6 +4,555 @@ Todos los cambios relevantes de **Steam Command Gen** quedan documentados en est
 
 ---
 
+## [3.2.5] - 2026-09-21
+
+> Cambios acumulados desde **2.0.0**.  
+> El historial de las versiones anteriores se conserva íntegramente más abajo.
+
+### 🚀 Nuevas funcionalidades
+
+#### 🥭 Integración de MangoHud
+
+* Añadido soporte para activar MangoHud directamente desde SteamCommandGen mediante:
+
+```text
+--mangoapp
+```
+
+* Añadido un botón gráfico independiente para activar o desactivar MangoHud por juego.
+* Añadido un **configurador gráfico de MangoHud** integrado en SteamCommandGen.
+* SteamCommandGen puede leer y editar el archivo global:
+
+```text
+~/.config/MangoHud/MangoHud.conf
+```
+
+* Se añade una configuración predeterminada cuando todavía no existe `MangoHud.conf`.
+* El editor permite activar o desactivar individualmente indicadores como:
+
+  * FPS
+  * Frametime
+  * Uso de CPU
+  * Uso de GPU
+  * Temperatura de CPU
+  * Temperatura de GPU
+  * RAM
+  * VRAM
+  * Motor gráfico
+  * Wine
+  * Batería
+  * Carga por núcleo
+  * Frecuencia de GPU
+  * Frecuencia de VRAM
+  * Potencia de GPU
+  * Potencia de CPU
+  * Temperatura RAM
+  * Resolución
+  * Frecuencia de pantalla
+  * Present mode
+  * Red
+  * GameMode
+  * HDR
+  * FSR
+
+* Añadida selección de posición del HUD:
+
+  * Arriba izquierda
+  * Arriba derecha
+  * Abajo izquierda
+  * Abajo derecha
+
+* Añadida selección de distribución:
+
+  * Vertical
+  * Horizontal
+
+* Añadido ajuste fino de posición mediante desplazamiento horizontal y vertical.
+* Añadidos controles direccionales para mover MangoHud en incrementos de 5 píxeles.
+* Añadida personalización de color para:
+
+  * FPS
+  * Carga de GPU
+  * Carga de CPU
+
+* Añadida configuración de la combinación de teclas utilizada para mostrar u ocultar MangoHud.
+* Se valida el formato de la combinación de teclas antes de guardar.
+* Las opciones de `MangoHud.conf` que no están representadas en la interfaz se conservan al volver a guardar el archivo.
+
+---
+
+#### 👁️ Vista previa de MangoHud
+
+* Añadido sistema de **vista previa en vivo** de la configuración de MangoHud.
+* La vista previa utiliza `mangohud` junto con:
+
+  * `vkcube`, si está disponible.
+  * `pascube` como alternativa.
+
+* Cuando se utiliza `vkcube`, la vista previa se abre a `1280x720` para disponer de espacio suficiente para configuraciones horizontales.
+* Los cambios realizados desde el editor se aplican automáticamente a la configuración utilizada por la vista previa.
+* SteamCommandGen captura los errores del proceso de vista previa y los muestra dentro del propio configurador.
+* Al cerrar la vista previa, el proceso se termina de forma controlada.
+
+---
+
+#### 💾 Gestión segura de `MangoHud.conf`
+
+* Añadida escritura atómica mediante `QSaveFile`.
+* SteamCommandGen conserva una instantánea del archivo antes de comenzar a editarlo.
+* Si se pulsa **Cancelar**, se restaura automáticamente el archivo anterior.
+* Si el archivo no existía antes de abrir el editor, Cancelar elimina el archivo creado durante la edición.
+* Añadido botón para crear manualmente:
+
+```text
+MangoHud.conf.bak
+```
+
+* Añadido botón para abrir directamente la carpeta que contiene `MangoHud.conf`.
+* Se evita reescribir el archivo si el contenido generado no ha cambiado.
+* La configuración global de MangoHud ya no se incrusta dentro de las `LaunchOptions`; MangoHud utiliza directamente su archivo de configuración.
+
+---
+
+### 🎮 Nuevo sistema visual de FSR / NIS / NEAREST
+
+* Los antiguos checkbox de escalado han sido sustituidos por **botones gráficos dedicados**.
+* Añadidos recursos visuales para:
+
+  * FSR
+  * NIS
+  * NEAREST
+
+* Los botones son seleccionables y reflejan visualmente el escalador activo.
+* Se introduce el estado interno `scaling_mode` para controlar de forma centralizada la tecnología seleccionada.
+* FSR, NIS y NEAREST continúan siendo mutuamente excluyentes.
+* Añadida una función común para reiniciar completamente el estado del escalado.
+* Los controles de nitidez solo aparecen cuando corresponden:
+
+  * FSR muestra su slider.
+  * NIS muestra su slider.
+  * NEAREST no muestra slider.
+
+---
+
+### ⚙️ Cambios en la sintaxis de Gamescope
+
+#### FSR
+
+El comando generado pasa de:
+
+```text
+-F fsr --fsr-sharpness N
+```
+
+a:
+
+```text
+-F fsr --sharpness N
+```
+
+#### NIS
+
+El comando generado pasa de:
+
+```text
+-F nis --nis-sharpness N
+```
+
+a:
+
+```text
+-F nis --sharpness N
+```
+
+* FSR y NIS utilizan ahora el mismo parámetro `--sharpness`.
+* La generación utiliza una única cadena de decisión para evitar incluir más de un escalador a la vez.
+
+---
+
+### 🎚️ Nuevo comportamiento de nitidez
+
+La interfaz mantiene un rango sencillo de `0–5`, pero SteamCommandGen lo convierte automáticamente al rango utilizado por `--sharpness`:
+
+| Interfaz | Gamescope |
+| ---: | ---: |
+| 0 | 20 |
+| 1 | 16 |
+| 2 | 12 |
+| 3 | 8 |
+| 4 | 4 |
+| 5 | 0 |
+
+* FSR y NIS utilizan ahora la misma conversión.
+* Eliminada la conversión antigua de NIS al rango `0.0–1.0`.
+* Al cargar una configuración existente, el valor de `--sharpness` vuelve a convertirse automáticamente al valor correspondiente del slider.
+
+---
+
+### 🖥️ Interfaz gráfica renovada
+
+* Añadido un estilo general inspirado en la interfaz de Steam.
+* Nueva paleta oscura basada en tonos azul oscuro.
+* Rediseñados visualmente:
+
+  * Ventana principal
+  * Paneles
+  * `QGroupBox`
+  * `QComboBox`
+  * `QLineEdit`
+  * `QPlainTextEdit`
+  * `QListWidget`
+  * `QCheckBox`
+  * `QSlider`
+
+* Añadidos estados visuales de selección para los botones de escalado.
+* Añadido botón gráfico dedicado a MangoHud.
+* Añadido botón independiente para abrir la configuración de MangoHud.
+* Si el recurso gráfico del botón de configuración de MangoHud no está instalado, SteamCommandGen puede generar un icono alternativo mediante Qt.
+* Se reorganizan y agrupan mejor las opciones de escalado, pantalla y MangoHud.
+
+---
+
+### 🖥️ Selección de resolución mejorada
+
+* Las resoluciones base y de salida ya no comienzan con una resolución real seleccionada automáticamente.
+* Los dos desplegables comienzan ahora en:
+
+```text
+Seleccionar resolución...
+```
+
+* El usuario debe elegir explícitamente:
+
+  * Resolución base.
+  * Resolución de salida.
+
+* SteamCommandGen impide generar o aplicar el comando si falta alguna de las dos resoluciones.
+* Se muestran avisos específicos indicando qué resolución falta.
+* Se evita así generar accidentalmente un comando utilizando la resolución mínima por defecto.
+
+---
+
+### ⚡ Escaneo de Steam optimizado
+
+#### Búsqueda de manifiestos `.acf`
+
+* Eliminado el recorrido recursivo de toda la carpeta `steamapps`.
+* Los manifiestos se buscan ahora directamente mediante `os.scandir()`.
+* Esto evita recorrer innecesariamente directorios como:
+
+  * `compatdata`
+  * `shadercache`
+  * contenido interno de los juegos
+
+* El cambio reduce considerablemente el trabajo realizado al escanear bibliotecas grandes.
+
+#### Escaneo en segundo hilo
+
+* Añadido `GameScanWorker`.
+* El escaneo de juegos se ejecuta fuera del hilo principal mediante `QThread`.
+* La interfaz permanece disponible mientras SteamCommandGen analiza las bibliotecas.
+* Durante el escaneo:
+
+  * El botón **Buscar juegos** se desactiva.
+  * El texto cambia temporalmente a `Buscando…`.
+
+* Al finalizar se restaura automáticamente el estado del botón.
+* Añadido manejo independiente de errores producidos durante el escaneo.
+
+---
+
+### 🧹 Filtrado de aplicaciones que no son juegos
+
+SteamCommandGen deja de mostrar como juegos determinadas herramientas internas de Steam.
+
+Se filtran automáticamente nombres que contienen:
+
+```text
+proton
+steam linux runtime
+lossless scaling
+steamworks common redistributables
+```
+
+Esto reduce el ruido en la lista de títulos detectados.
+
+---
+
+### 🔍 Mejoras en la detección de juegos
+
+* Se valida que cada entrada tenga:
+
+  * AppID.
+  * Nombre.
+  * Directorio de instalación.
+
+* Los AppID ya detectados se almacenan en un `set`, evitando duplicados de forma más eficiente.
+* Los juegos se ordenan alfabéticamente antes de mostrarse.
+* La lista muestra directamente el nombre del juego.
+* El ancho de la lista se calcula automáticamente a partir del nombre más largo.
+* Se establece un límite mínimo y máximo para evitar que la interfaz quede demasiado estrecha o demasiado ancha.
+
+---
+
+### 🛡️ Detección de ejecutables más robusta
+
+* Se mantiene el comportamiento de seleccionar el `.exe` o `.sh` de mayor tamaño situado en el directorio raíz del juego.
+* Añadido control de errores al listar el directorio.
+* Añadido control de errores al consultar el tamaño de cada archivo.
+* Un archivo inaccesible ya no interrumpe necesariamente el escaneo completo.
+
+---
+
+### 📚 Mejoras en la gestión de bibliotecas y usuarios de Steam
+
+* Validación más estricta de las entradas de `libraryfolders.vdf`.
+* Las entradas que no sean diccionarios válidos se ignoran.
+* Las entradas sin ruta se ignoran.
+* La biblioteca principal de Steam continúa añadiéndose automáticamente.
+* Se mantiene la prevención de bibliotecas duplicadas.
+* Los directorios numéricos de `userdata` se ordenan antes de buscar `localconfig.vdf`.
+* Se mantiene un sistema de fallback para localizar la configuración cuando la ruta inicialmente detectada no existe.
+
+---
+
+### 🧩 Refactorización de `localconfig.vdf`
+
+* Añadida la función:
+
+```python
+get_steam_apps_dict()
+```
+
+* Esta función centraliza el acceso a:
+
+```text
+UserLocalConfigStore
+└── Software
+    └── Valve
+        └── Steam
+            └── apps
+```
+
+* Se reduce la duplicación entre:
+
+  * Escritura de `LaunchOptions`.
+  * Borrado de `LaunchOptions`.
+  * Lectura de `LaunchOptions`.
+
+---
+
+### 🧠 Parser de LaunchOptions actualizado
+
+El parser reconoce ahora la sintaxis utilizada por la versión actual:
+
+```text
+-F fsr
+-F nis
+-F nearest
+--sharpness
+--hdr-enabled
+--adaptive-sync
+--immediate-flips
+--mangoapp
+WINEDLLOVERRIDES
+```
+
+También continúa restaurando:
+
+```text
+-w
+-h
+-W
+-H
+```
+
+#### `WINEDLLOVERRIDES`
+
+* Se amplía la detección para aceptar valores:
+
+  * Entre comillas dobles.
+  * Entre comillas simples.
+  * Sin comillas.
+
+* Al generar un nuevo comando se utiliza `shlex.quote()` para escapar el valor de forma más segura.
+
+---
+
+### 🔄 Restauración y aislamiento de la configuración de cada juego
+
+Al seleccionar un juego, SteamCommandGen reinicia primero el estado de la interfaz antes de cargar sus `LaunchOptions`.
+
+Se reinician:
+
+* Resolución base.
+* Resolución de salida.
+* FSR.
+* NIS.
+* NEAREST.
+* Sliders de nitidez.
+* HDR.
+* VRR.
+* Immediate Flips.
+* MangoHud.
+* `WINEDLLOVERRIDES`.
+
+Después se analiza la configuración del juego seleccionado y se restauran únicamente las opciones encontradas.
+
+Esto evita arrastrar opciones visuales pertenecientes al juego seleccionado anteriormente.
+
+---
+
+### 🧹 Mejoras en “Limpiar propiedades”
+
+Después de borrar las `LaunchOptions`, SteamCommandGen también reinicia la configuración mostrada en la interfaz:
+
+* Resolución base.
+* Resolución de salida.
+* Escalado.
+* Nitidez.
+* HDR.
+* VRR.
+* Immediate Flips.
+* MangoHud.
+* `WINEDLLOVERRIDES`.
+
+---
+
+### 🌐 Mejoras en la carga de imágenes
+
+* Se mantiene una única instancia compartida de `QNetworkAccessManager`.
+* Añadido manejo explícito de `QNetworkReply`.
+* Se comprueba que la imagen recibida pueda convertirse correctamente en `QPixmap`.
+* La imagen principal del juego utiliza escalado suave.
+* Antes de asignar una cápsula descargada se comprueba que el elemento continúe perteneciendo a la lista.
+
+---
+
+### 🔁 VRR e Immediate Flips
+
+* VRR e Immediate Flips continúan siendo mutuamente excluyentes.
+* Durante la desactivación automática de la opción incompatible se bloquean temporalmente las señales de Qt.
+* Esto evita ejecutar callbacks innecesarios mientras la aplicación sincroniza los controles.
+
+---
+
+### 🧯 Cierre de Steam más preciso
+
+El cierre de Steam cambia de:
+
+```text
+pkill -f steam
+```
+
+a:
+
+```text
+pkill -x steam
+```
+
+* Se utiliza ahora una coincidencia exacta del nombre del proceso.
+* Se reduce el riesgo de terminar accidentalmente otros procesos cuyo comando simplemente contenga la palabra `steam`.
+* La ejecución se realiza mediante `subprocess.run()` y mantiene manejo explícito de errores.
+
+---
+
+### 🛠️ Mejoras internas
+
+* Añadido `shlex` para construir de forma más segura variables de entorno incluidas en las Launch Options.
+* Añadido `shutil` para localizar ejecutables y gestionar la copia de seguridad de MangoHud.
+* Añadido uso explícito de `QNetworkReply`.
+* Añadidas rutas centralizadas para recursos gráficos:
+
+```text
+/usr/local/share/SteamCommandGen/scaling
+/usr/local/share/SteamCommandGen/BOTONES
+```
+
+* Añadida separación más clara entre:
+
+  * Detección de Steam.
+  * Bibliotecas.
+  * Manifiestos `.acf`.
+  * Juegos.
+  * Gestión de `localconfig.vdf`.
+  * Generación de comandos.
+  * Configuración de MangoHud.
+  * Escaneo en segundo hilo.
+  * Interfaz.
+  * Restauración de configuraciones.
+
+* Añadido manejo de más errores de sistema de archivos.
+* Reducida la duplicación de código.
+* Mejor sincronización entre el estado interno y los controles gráficos.
+
+---
+
+### 🐛 Correcciones
+
+* Corregida la sintaxis de nitidez de FSR y NIS para utilizar `--sharpness`.
+* Eliminada la conversión antigua de NIS al rango `0.0–1.0`.
+* Evitado que los desplegables de resolución seleccionen automáticamente la resolución mínima.
+* Evitado que la configuración del juego anterior permanezca activa al seleccionar otro.
+* Mejorado el aislamiento entre FSR, NIS y NEAREST.
+* Evitados callbacks innecesarios al cambiar entre VRR e Immediate Flips.
+* Reducidos bloqueos de interfaz durante el escaneo de bibliotecas.
+* Evitado el recorrido recursivo innecesario de `steamapps`.
+* Filtradas herramientas de Steam que anteriormente podían aparecer mezcladas con los juegos.
+* Mejorado el tratamiento de rutas y archivos inaccesibles durante el escaneo.
+* Mejorado el tratamiento de `WINEDLLOVERRIDES`.
+* Mejorado el cierre de Steam para utilizar una coincidencia exacta del proceso.
+* Añadida restauración segura de `MangoHud.conf` cuando se cancela una edición.
+
+---
+
+### ⚠️ Notas de actualización desde 2.0.0
+
+* Las configuraciones nuevas de FSR y NIS utilizan:
+
+```text
+--sharpness
+```
+
+en lugar de:
+
+```text
+--fsr-sharpness
+--nis-sharpness
+```
+
+* NIS deja de utilizar la conversión de interfaz `0–5` → `0.0–1.0` documentada en 2.0.0.
+* Las resoluciones deben seleccionarse explícitamente antes de generar un comando.
+* MangoHud puede activarse mediante `--mangoapp` y configurarse desde la propia aplicación.
+* El histórico de 2.0.0 y 1.0.0 se conserva a continuación para documentar el comportamiento de esas versiones.
+
+---
+
+### 📌 Resumen de 3.2.5
+
+La versión **3.2.5** amplía considerablemente SteamCommandGen respecto a 2.0.0.
+
+Las principales incorporaciones son:
+
+```text
+Interfaz gráfica renovada
+Botones gráficos FSR / NIS / NEAREST
+FSR/NIS mediante --sharpness
+Integración --mangoapp
+Configurador gráfico de MangoHud
+Vista previa de MangoHud en vivo
+Gestión segura de MangoHud.conf
+Escaneo de Steam mediante QThread
+Escaneo directo de manifiestos .acf
+Filtrado de herramientas que no son juegos
+Selección explícita de resoluciones
+Parser de LaunchOptions actualizado
+Mejor restauración del estado por juego
+Cierre de Steam más preciso
+```
+
+---
+
 ## [2.0.0] - 2026-09-14
 
 ### 🚀 Nuevas funcionalidades
