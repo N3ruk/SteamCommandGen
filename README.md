@@ -1,281 +1,185 @@
-# SteamCommandGen
+# SteamCommandGen — Gamescope GUI & Steam Launch Options Manager for Linux
 
-**SteamCommandGen** es una herramienta gráfica para **Linux** diseñada para generar, aplicar y gestionar opciones de lanzamiento de Steam utilizando **Gamescope**.
+**SteamCommandGen** is a graphical **Gamescope configuration tool for Steam on Linux**. It helps you build, apply and manage Steam launch options for **AMD FSR, NVIDIA NIS, HDR, VRR / Adaptive Sync, MangoHud, resolution scaling and low-latency options** without manually writing long Gamescope commands.
 
-Permite configurar de forma sencilla y visual resoluciones, tecnologías de escalado, nitidez, HDR, VRR, baja latencia, `WINEDLLOVERRIDES` y MangoHud, generando automáticamente las `LaunchOptions` necesarias para cada juego.
+> Current version: **SteamCommandGen v3.2.5**  
+> Español: **[README_ES.md](README_ES.md)**
 
-> Versión actual: **SteamCommandGen v3.2.5**
+![SteamCommandGen screenshot](assets/screenshots/main.png)
 
-![SteamCommandGen Screenshot](assets/screenshots/main.png)
+## What SteamCommandGen does
 
----
+SteamCommandGen scans your Steam libraries, detects installed games and gives you a visual interface for creating Gamescope launch commands. It can also read existing Steam `LaunchOptions` and restore supported settings back into the interface.
 
-## ✨ Características
+It is useful if you want a **Gamescope GUI for Linux**, a visual **Steam launch options manager**, or an easier way to configure **FSR / NIS upscaling, HDR, VRR and MangoHud** per game.
 
-* 🎮 Detección automática de juegos y bibliotecas de Steam.
-* ⚡ Escaneo optimizado de bibliotecas sin recorrer innecesariamente `compatdata`, `shadercache` u otras carpetas.
-* 🧵 Escaneo de juegos en segundo plano para evitar bloquear la interfaz.
-* ⚙️ Generación automática de comandos **Gamescope**.
-* 🖥️ Interfaz gráfica desarrollada con **PyQt6**.
-* 🔴 Soporte para **AMD FSR**.
-* 🟢 Soporte para **NVIDIA NIS**.
-* 🔵 Soporte para **NEAREST**.
-* 🎚️ Control de nitidez para FSR y NIS.
-* 🥭 Integración con **MangoHud** mediante `--mangoapp`.
-* 🛠️ Configurador gráfico integrado para `MangoHud.conf`.
-* 👁️ Vista previa de MangoHud.
-* 🖥️ Resoluciones desde **450p hasta 4K**.
-* 🌈 Soporte para **HDR**.
-* ⚡ Soporte para **VRR / Adaptive Sync**.
-* 🚀 Soporte para **Immediate Flips / baja latencia**.
-* 🔧 Soporte para `WINEDLLOVERRIDES`.
-* 🔄 Lectura y restauración automática de las **Steam LaunchOptions** existentes.
-* 🧹 Limpieza de LaunchOptions desde la propia aplicación.
-* 📋 Copiado de comandos al portapapeles.
-* 🖼️ Carga de iconos y carátulas de los juegos.
-* 🚫 Filtrado automático de herramientas de Steam que no son juegos.
-* 📦 Disponible como **AppImage**, **paquete `.deb`** y **script instalador**.
+## Features
 
----
+- Automatic detection of Steam libraries and installed games.
+- Gamescope launch-command generation from a PyQt6 GUI.
+- **AMD FidelityFX Super Resolution (FSR)** support.
+- **NVIDIA Image Scaling (NIS)** support.
+- **Nearest-neighbor scaling** support.
+- FSR and NIS sharpness controls.
+- Input/output resolutions from **450p to 4K**.
+- **HDR** support.
+- **VRR / Adaptive Sync** support.
+- **Immediate Flips / low-latency** option.
+- **MangoHud / MangoApp** integration.
+- Built-in `MangoHud.conf` editor and preview.
+- `WINEDLLOVERRIDES` support.
+- Existing Steam `LaunchOptions` parsing and restoration.
+- Clipboard support for generated commands.
+- Game artwork loading.
+- Filtering of Proton, Steam Linux Runtime, Steamworks redistributables and other non-game tools.
+- Available as **AppImage**, **Debian package (`.deb`)** and installer script.
 
-## 🎮 Tecnologías de escalado
+## Gamescope scaling: FSR, NIS and Nearest
 
-SteamCommandGen permite seleccionar entre diferentes tecnologías de escalado disponibles en Gamescope:
+SteamCommandGen exposes Gamescope's supported scaling filters directly in the GUI.
 
-| Tecnología | Descripción |
-| --- | --- |
-| **FSR** | AMD FidelityFX Super Resolution |
-| **NIS** | NVIDIA Image Scaling |
-| **NEAREST** | Escalado mediante vecino más cercano |
+| Scaling mode | Gamescope option | Use case |
+| --- | --- | --- |
+| **AMD FSR** | `-F fsr` | Spatial upscaling with configurable sharpening |
+| **NVIDIA NIS** | `-F nis` | NVIDIA Image Scaling with configurable sharpening |
+| **Nearest** | `-F nearest` | Nearest-neighbor scaling |
 
-Las tecnologías de escalado son **mutuamente excluyentes**. La aplicación mantiene sincronizado el estado de la interfaz y genera automáticamente el parámetro correspondiente de Gamescope.
-
-### FSR
-
-SteamCommandGen genera comandos con la sintaxis:
-
-```text
--F fsr --sharpness N
-```
-
-### NIS
-
-SteamCommandGen genera comandos con la sintaxis:
-
-```text
--F nis --sharpness N
-```
-
-### NEAREST
-
-```text
--F nearest
-```
-
-Los controles de nitidez de FSR y NIS utilizan una escala sencilla de **0 a 5** en la interfaz. SteamCommandGen realiza internamente la conversión necesaria al valor utilizado por Gamescope.
-
----
-
-## 🥭 Integración con MangoHud
-
-SteamCommandGen v3.2.5 incorpora integración directa con **MangoHud**.
-
-MangoHud puede activarse desde la interfaz y se añade al comando Gamescope mediante:
-
-```text
---mangoapp
-```
-
-Además, SteamCommandGen incluye un configurador gráfico para:
-
-* FPS y frametime.
-* Uso de CPU y GPU.
-* Temperaturas.
-* RAM y VRAM.
-* Frecuencias y consumo.
-* Resolución y frecuencia de pantalla.
-* Estado de HDR, FSR y GameMode.
-* Posición del HUD.
-* Diseño vertical u horizontal.
-* Ajuste fino de posición.
-* Colores.
-* Tecla para mostrar u ocultar el HUD.
-
-La configuración se guarda en:
-
-```text
-~/.config/MangoHud/MangoHud.conf
-```
-
-El editor incluye gestión segura del archivo de configuración, creación de copia `.bak` y restauración de los cambios al cancelar.
-
-SteamCommandGen también puede mostrar una **vista previa de MangoHud** cuando existe una aplicación Vulkan compatible para utilizar como ventana de prueba.
-
----
-
-## 🖥️ Resoluciones
-
-Actualmente se pueden seleccionar las siguientes resoluciones:
-
-* **450p** — 800×450
-* **576p** — 1024×576
-* **720p** — 1280×720
-* **900p** — 1600×900
-* **1080p** — 1920×1080
-* **1440p** — 2560×1440
-* **4K** — 3840×2160
-
-Las resoluciones de entrada y salida comienzan **sin ningún valor preseleccionado**, evitando generar accidentalmente un comando con una resolución que el usuario no haya elegido.
-
----
-
-## 🔄 Restauración de LaunchOptions
-
-Al seleccionar un juego, SteamCommandGen analiza sus `LaunchOptions` existentes e intenta restaurar automáticamente en la interfaz:
-
-* Resolución de entrada.
-* Resolución de salida.
-* FSR.
-* NIS.
-* NEAREST.
-* Nitidez.
-* HDR.
-* VRR / Adaptive Sync.
-* Immediate Flips.
-* MangoHud.
-* `WINEDLLOVERRIDES`.
-
-Al cambiar de juego, el estado de la interfaz se reinicia antes de cargar la configuración del nuevo título, evitando mezclar opciones entre juegos diferentes.
-
----
-
-## 🎮 Gestión de Steam
-
-SteamCommandGen detecta automáticamente las bibliotecas configuradas en Steam y lee sus manifiestos `.acf`.
-
-El escaneo actual está optimizado para consultar directamente los manifiestos situados en `steamapps`, evitando recorrer recursivamente directorios que no son necesarios.
-
-Además, se filtran automáticamente aplicaciones y componentes que no deberían aparecer como videojuegos, entre ellos:
-
-* Proton.
-* Steam Linux Runtime.
-* Steamworks Common Redistributables.
-* Lossless Scaling.
-
-Los juegos duplicados entre bibliotecas se identifican mediante su **AppID**.
-
----
-
-## ⚙️ Ejemplos de comandos
-
-### FSR
+### FSR example
 
 ```text
 gamescope -w 1920 -h 1080 -W 2560 -H 1440 -F fsr --sharpness 0 -f -- %command%
 ```
 
-### NIS + MangoHud
+### NIS + MangoHud example
 
 ```text
 gamescope -w 1920 -h 1080 -W 2560 -H 1440 -F nis --sharpness 0 --mangoapp -f -- %command%
 ```
 
-### HDR + VRR
+### HDR + VRR example
 
 ```text
 gamescope -w 1920 -h 1080 -W 2560 -H 1440 --hdr-enabled --adaptive-sync -f -- %command%
 ```
 
-> **VRR / Adaptive Sync** e **Immediate Flips** se gestionan como opciones mutuamente excluyentes desde la interfaz.
+SteamCommandGen presents FSR/NIS sharpening on a simple **0–5 scale** and converts it to the value expected by Gamescope.
 
----
+## MangoHud integration
 
-# 📦 Instalación
+SteamCommandGen can enable MangoHud through Gamescope using:
 
-SteamCommandGen puede instalarse de diferentes formas dependiendo de las preferencias del usuario.
+```text
+--mangoapp
+```
 
-La versión más reciente y los archivos descargables están disponibles en la sección **Releases** de GitHub.
+It also includes a graphical editor for:
 
-## 🟩 Opción 1: Paquete `.deb`
+- FPS and frametime.
+- CPU/GPU load and temperatures.
+- RAM and VRAM.
+- Frequencies and power usage.
+- Display resolution and refresh rate.
+- HDR / FSR / GameMode status.
+- HUD position and layout.
+- Colors.
+- Toggle hotkey.
 
-Descarga el paquete `.deb` correspondiente a la versión que quieras instalar desde **Releases** y ejecuta:
+The configuration is stored in:
+
+```text
+~/.config/MangoHud/MangoHud.conf
+```
+
+The editor can create a backup, restore changes on cancel and show a preview when a compatible Vulkan application is available.
+
+## Supported resolutions
+
+- **450p** — 800×450
+- **576p** — 1024×576
+- **720p** — 1280×720
+- **900p** — 1600×900
+- **1080p** — 1920×1080
+- **1440p** — 2560×1440
+- **4K** — 3840×2160
+
+Input and output resolution selectors start empty so SteamCommandGen does not generate an unintended resolution until you choose one.
+
+## Steam LaunchOptions management
+
+When you select a game, SteamCommandGen can parse existing `LaunchOptions` and restore supported values such as:
+
+- Input/output resolution.
+- FSR.
+- NIS.
+- Nearest scaling.
+- Sharpness.
+- HDR.
+- VRR / Adaptive Sync.
+- Immediate Flips.
+- MangoHud.
+- `WINEDLLOVERRIDES`.
+
+The UI resets before loading another game so settings are not mixed between titles.
+
+## Installation
+
+Download the latest build from **[GitHub Releases](../../releases)**.
+
+### Debian / Ubuntu package
 
 ```bash
 sudo apt install ./SteamCommandGen_x.x.x_amd64.deb
 ```
 
----
-
-## 🟩 Opción 2: Script instalador
-
-Descarga el `.zip` desde **Releases**, descomprímelo y ejecuta:
+### Installer script
 
 ```bash
 chmod +x install.sh
 ./install.sh
 ```
 
-El instalador se encargará de realizar la instalación de la aplicación.
-
----
-
-## 🟩 Opción 3: AppImage
-
-Descarga la versión AppImage desde **Releases** y ejecuta:
+### AppImage
 
 ```bash
 chmod +x SteamCommandGen-x86_64.AppImage
 ./SteamCommandGen-x86_64.AppImage
 ```
 
-No es necesario realizar una instalación tradicional para utilizar la versión AppImage.
+## Requirements
 
----
+Main requirements:
 
-# 🛠️ Requisitos
+- Linux.
+- Steam.
+- Gamescope.
 
-## Requisitos principales
+Running from source also requires:
 
-* Linux.
-* Steam.
-* Gamescope.
+- Python 3.
+- PyQt6.
+- Python `vdf` module.
 
-## Ejecución desde código fuente
+Optional:
 
-Para ejecutar directamente el programa en Python también son necesarios:
+- MangoHud for MangoHud/MangoApp features.
 
-* Python 3.x.
-* PyQt6.
-* Módulo Python `vdf`.
+## Who is this for?
 
-## Funciones opcionales
+SteamCommandGen is aimed at Linux gamers who use **Steam + Gamescope** and want a graphical alternative to manually maintaining launch-option strings. It is especially useful when experimenting with different render/output resolutions, **FSR vs NIS**, HDR, VRR or MangoHud across multiple games.
 
-Para utilizar las funciones relacionadas con MangoHud:
+## Changelog
 
-* MangoHud.
+See **[CHANGELOG.md](CHANGELOG.md)** for version history.
 
-Para utilizar la vista previa del HUD debe existir además una aplicación Vulkan compatible utilizada por SteamCommandGen para mostrar la prueba.
+## Releases
 
-Las versiones empaquetadas pueden incluir parte de las dependencias necesarias dependiendo del formato utilizado.
+Official downloads are available under **[Releases](../../releases)**.
 
----
+## License
 
-# 📋 Changelog
+See **[LICENSE](LICENSE)** for licensing terms.
 
-Puedes consultar el historial completo de cambios de **SteamCommandGen**, incluyendo las versiones 1.0.0, 2.0.0 y 3.2.5, en:
+## Related projects
 
-**[CHANGELOG.md](CHANGELOG.md)**
-
----
-
-# 🚀 Releases
-
-Las versiones oficiales y sus archivos descargables están disponibles en:
-
-**[Releases](../../releases)**
-
----
-
-# 📄 Licencia
-
-Consulta el archivo **[LICENSE](https://github.com/neruk123-droid/SteamCommandGen/blob/main/LICENSE)** incluido en este repositorio para conocer las condiciones de uso y distribución del proyecto.
+- [Gamescope](https://github.com/ValveSoftware/gamescope)
+- [MangoHud](https://github.com/flightlessmango/MangoHud)
