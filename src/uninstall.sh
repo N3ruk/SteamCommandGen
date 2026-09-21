@@ -8,6 +8,7 @@ echo "========================================"
 BIN_PATH="$HOME/.local/bin/SteamCommanderGen.py"
 DESKTOP_PATH="$HOME/.local/share/applications/SteamCommandGen.desktop"
 ICON_PATH="$HOME/.local/share/icons/hicolor/256x256/apps/SteamCommandGen.png"
+RESOURCES_PATH="$HOME/.local/share/SteamCommandGen"
 
 echo "Eliminando archivos..."
 
@@ -35,6 +36,14 @@ else
     echo "⚠ No encontrado: $ICON_PATH"
 fi
 
+# Eliminar recursos de la aplicación
+if [ -d "$RESOURCES_PATH" ]; then
+    rm -rf "$RESOURCES_PATH"
+    echo "✔ Eliminados recursos: $RESOURCES_PATH"
+else
+    echo "⚠ Recursos no encontrados: $RESOURCES_PATH"
+fi
+
 echo ""
 echo "Actualizando caché de iconos..."
 gtk-update-icon-cache "$HOME/.local/share/icons/hicolor"
@@ -44,4 +53,3 @@ echo "========================================"
 echo "  Desinstalación completada"
 echo "========================================"
 echo "SteamCommandGen ha sido eliminado del sistema."
-

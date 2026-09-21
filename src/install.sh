@@ -104,11 +104,13 @@ echo "========================================"
 mkdir -p ~/.local/bin
 mkdir -p ~/.local/share/applications
 mkdir -p ~/.local/share/icons/hicolor/256x256/apps
+mkdir -p ~/.local/share/SteamCommandGen
 
 # Copiar archivos
 cp SteamCommanderGen.py ~/.local/bin/
 cp SteamCommandGen.desktop ~/.local/share/applications/
 cp SteamCommandGen.png ~/.local/share/icons/hicolor/256x256/apps/
+cp -a SteamCommandGen/. ~/.local/share/SteamCommandGen/
 
 # Permisos
 chmod +x ~/.local/bin/SteamCommanderGen.py
@@ -121,4 +123,3 @@ echo "========================================"
 echo "  Instalación completada"
 echo "========================================"
 echo "Puedes ejecutar SteamCommandGen desde el menú de aplicaciones."
-
