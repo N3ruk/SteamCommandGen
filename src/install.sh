@@ -18,7 +18,7 @@ launcher="$HOME/.local/bin/SteamCommandGen"
 desktop="$HOME/.local/share/applications/SteamCommandGen.desktop"
 icon="$HOME/.local/share/icons/hicolor/256x256/apps/SteamCommandGen.png"
 
-for file in SteamCommandGen.py SteamCommandGen.desktop SteamCommandGen.png; do
+for file in SteamCommandGen.py SteamCommandGen.png; do
     [[ -f "$source_dir/$file" ]] || { echo "Falta $source_dir/$file" >&2; exit 1; }
 done
 for folder in BOTONES scaling; do
@@ -51,13 +51,18 @@ rm -f -- "$HOME/.local/bin/SteamCommanderGen.py" \
     "$HOME/.local/bin/SteamCommanderGen" \
     "$app_root/app/SteamCommanderGen.py"
 
+desktop_exec="$launcher"
+if [[ "$desktop_exec" == *" "* ]]; then
+    desktop_exec="\"$desktop_exec\""
+fi
+
 cat > "$desktop" <<EOF
 [Desktop Entry]
 Type=Application
 Name=SteamCommandGen
 Comment=Generador de comandos para Steam
-Exec="$launcher"
-Icon=SteamCommandGen
+Exec=$desktop_exec
+Icon=$icon
 Terminal=false
 Categories=Utility;Game;
 StartupNotify=true
@@ -70,4 +75,10 @@ fi
 if command -v update-desktop-database >/dev/null 2>&1; then
     update-desktop-database "$HOME/.local/share/applications" >/dev/null 2>&1 || true
 fi
+for cache_cmd in kbuildsycoca6 kbuildsycoca5; do
+    if command -v "$cache_cmd" >/dev/null 2>&1; then
+        "$cache_cmd" --noincremental >/dev/null 2>&1 || true
+        break
+    fi
+done
 echo "SteamCommandGen instalado en $app_root"

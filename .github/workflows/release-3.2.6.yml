@@ -1,12 +1,9 @@
-name: Release v3.2.6
+name: Update installer ZIP v3.2.6
 on:
   push:
     branches: [main]
     paths:
-      - 'src/**'
-      - 'packaging/**'
-      - 'README*'
-      - 'CHANGELOG.md'
+      - 'src/install.sh'
       - '.github/workflows/release-3.2.6.yml'
   workflow_dispatch:
 
@@ -14,37 +11,52 @@ permissions:
   contents: write
 
 jobs:
-  build-and-release:
+  zip-only:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.14'
-      - name: Install build dependencies
-        run: sudo apt-get update && sudo apt-get install -y python3-venv
-      - name: Get appimagetool
+      - name: Package only the application and installer
         run: |
-          curl -fL --retry 3 -o "$RUNNER_TEMP/appimagetool" https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-x86_64.AppImage
-          chmod +x "$RUNNER_TEMP/appimagetool"
-      - name: Build packages
-        env:
-          APPIMAGE_EXTRACT_AND_RUN: '1'
+          python3 - <<'PY'
+          from pathlib import Path
+          from zipfile import ZipFile, ZIP_DEFLATED
+          root = Path("src")
+          files = [root / name for name in (
+              "SteamCommandGen.py", "SteamCommandGen.png",
+              "install.sh", "uninstall.sh",
+          )]
+          files += sorted(path for path in (root / "SteamCommandGen").rglob("*") if path.is_file())
+          Path("dist").mkdir(exist_ok=True)
+          with ZipFile("dist/steamcommandgen_3.2.6.zip", "w", ZIP_DEFLATED, compresslevel=9) as archive:
+              for path in files:
+                  archive.write(path, path.relative_to(root))
+          PY
+      - name: Test installer from ZIP as a regular user
         run: |
-          ./packaging/build-deb.sh
-          APPIMAGETOOL="$RUNNER_TEMP/appimagetool" ./packaging/build-appimage.sh
-          git archive --format=zip --output=dist/steamcommandgen_3.2.6.zip HEAD
-          (cd dist && sha256sum SteamCommandGen-3.2.6-x86_64.AppImage SteamCommandGen_3.2.6_amd64.deb steamcommandgen_3.2.6.zip > SHA256SUMS)
-      - name: Publish release and packages
+          unpack="$RUNNER_TEMP/steamcommandgen-unpack"
+          user_home="$RUNNER_TEMP/steamcommandgen-home"
+          mkdir -p "$unpack" "$user_home"
+          unzip -q dist/steamcommandgen_3.2.6.zip -d "$unpack"
+          test ! -e "$unpack/SteamCommandGen.desktop"
+          test ! -e "$unpack/README.md"
+          env HOME="$user_home" bash "$unpack/install.sh"
+          test -x "$user_home/.local/bin/SteamCommandGen"
+          grep -Fx "Exec=$user_home/.local/bin/SteamCommandGen" "$user_home/.local/share/applications/SteamCommandGen.desktop"
+          grep -Fx "Icon=$user_home/.local/share/icons/hicolor/256x256/apps/SteamCommandGen.png" "$user_home/.local/share/applications/SteamCommandGen.desktop"
+          test -s "$user_home/.local/share/icons/hicolor/256x256/apps/SteamCommandGen.png"
+      - name: Replace only ZIP and checksum asset
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          if gh release view v3.2.6 >/dev/null 2>&1; then
-            gh release upload v3.2.6 dist/* --clobber
-            gh release edit v3.2.6 --title 'V3.2.6' --notes-file packaging/RELEASE_3.2.6.md
-            gh api -X PATCH "repos/$GITHUB_REPOSITORY/git/refs/tags/v3.2.6" \
-              -f sha="$GITHUB_SHA" -F force=true >/dev/null
-          else
-            gh release create v3.2.6 dist/* --target "$GITHUB_SHA" \
-              --title 'V3.2.6' --notes-file packaging/RELEASE_3.2.6.md
-          fi
+          app_sha="$(gh api "repos/$GITHUB_REPOSITORY/releases/tags/v3.2.6" --jq '.assets[] | select(.name == "SteamCommandGen-3.2.6-x86_64.AppImage") | .digest' | cut -d: -f2)"
+          deb_sha="$(gh api "repos/$GITHUB_REPOSITORY/releases/tags/v3.2.6" --jq '.assets[] | select(.name == "SteamCommandGen_3.2.6_amd64.deb") | .digest' | cut -d: -f2)"
+          test -n "$app_sha"
+          test -n "$deb_sha"
+          (
+            cd dist
+            printf '%s  %s\n' "$app_sha" "SteamCommandGen-3.2.6-x86_64.AppImage"
+            printf '%s  %s\n' "$deb_sha" "SteamCommandGen_3.2.6_amd64.deb"
+            sha256sum steamcommandgen_3.2.6.zip
+          ) > dist/SHA256SUMS
+          gh release upload v3.2.6 dist/steamcommandgen_3.2.6.zip dist/SHA256SUMS --clobber
+          gh api -X PATCH "repos/$GITHUB_REPOSITORY/git/refs/tags/v3.2.6" -f sha="$GITHUB_SHA" -F force=true >/dev/null
