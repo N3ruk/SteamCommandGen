@@ -31,6 +31,8 @@ jobs:
               for path in files:
                   archive.write(path, path.relative_to(root))
           PY
+      - name: Install Qt runtime libraries for smoke test
+        run: sudo apt-get update && sudo apt-get install -y libegl1 libopengl0 libgl1
       - name: Test installer from ZIP as a regular user
         run: |
           unpack="$RUNNER_TEMP/steamcommandgen-unpack"
