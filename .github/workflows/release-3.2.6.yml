@@ -34,7 +34,7 @@ jobs:
           ./packaging/build-deb.sh
           APPIMAGETOOL="$RUNNER_TEMP/appimagetool" ./packaging/build-appimage.sh
           git archive --format=zip --output=dist/steamcommandgen_3.2.6.zip HEAD
-          sha256sum dist/* > dist/SHA256SUMS
+          (cd dist && sha256sum SteamCommandGen-3.2.6-x86_64.AppImage SteamCommandGen_3.2.6_amd64.deb steamcommandgen_3.2.6.zip > SHA256SUMS)
       - name: Publish release and packages
         env:
           GH_TOKEN: ${{ github.token }}
