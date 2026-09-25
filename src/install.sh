@@ -34,7 +34,7 @@ if [[ ! -x "$app_root/venv/bin/python" ]]; then
     }
 fi
 "$app_root/venv/bin/python" -m pip install --disable-pip-version-check \
-    'vdf==3.4' 'PyQt6==6.7.1' 'PyQt6-Qt6==6.7.3'
+    'vdf==3.4' 'PyQt6==6.11.0' 'PyQt6-Qt6==6.11.2' 'PyQt6-sip==13.12.0'
 "$app_root/venv/bin/python" -c 'import vdf; from PyQt6 import QtCore, QtGui, QtWidgets, QtNetwork'
 
 mkdir -p "$app_root/app"
