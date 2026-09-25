@@ -173,7 +173,7 @@ En SteamOS usa el AppImage o el instalador de usuario. El instalador crea su pro
 
 ## Construir los paquetes
 
-En Debian/Ubuntu x86_64 ejecuta `./packaging/build-deb.sh`. Para el AppImage, descarga [appimagetool oficial](https://github.com/AppImage/appimagetool/releases) y ejecuta `APPIMAGETOOL=/ruta/a/appimagetool ./packaging/build-appimage.sh`. Ambos scripts escriben en `dist/` por defecto y admiten una carpeta de salida como primer argumento. La construcción del AppImage requiere `python3-venv`, `pip` e internet; el `.deb` usa `python3-pyqt6` de la distribución.
+En Debian/Ubuntu x86_64 ejecuta `./packaging/build-deb.sh`. Para el AppImage, instala Python 3.14, descarga [appimagetool oficial](https://github.com/AppImage/appimagetool/releases) y ejecuta `APPIMAGETOOL=/ruta/a/appimagetool ./packaging/build-appimage.sh`. Ambos scripts escriben en `dist/` por defecto y admiten una carpeta de salida como primer argumento. La construcción del AppImage requiere Python 3.14 con `venv`, `pip` e internet; el `.deb` usa `python3-pyqt6` de la distribución.
 
 ---
 

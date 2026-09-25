@@ -2,6 +2,10 @@
 
 Corrección de instalación en SteamOS y de los paquetes distribuidos.
 
+**Actualización del paquete:** el archivo principal se llama ahora `SteamCommandGen.py`.
+
+El AppImage 3.2.5 buscaba juegos correctamente en Ubuntu cuando encontraba Python 3.14 en el sistema. La primera compilación de 3.2.6 cambió Python 3.14/Qt 6.11 por Python 3.12/Qt 6.7; esta actualización recupera Python 3.14/Qt 6.11 y los incluye en el propio AppImage. El `.deb` usa una ruta absoluta en el lanzador y proporciona el nombre antiguo como alias para instalaciones actualizadas desde 3.2.5.
+
 ## Qué estaba roto
 
 - El `.desktop` de la instalación de usuario ejecutaba `SteamCommanderGen.py` por nombre, y Plasma no siempre incluye `~/.local/bin` en su `PATH`.

@@ -6,6 +6,9 @@ Todos los cambios relevantes de **Steam Command Gen** quedan documentados en est
 
 ## [3.2.6] - 2026-09-25
 
+* Homogeneizado el archivo principal como `SteamCommandGen.py` y actualizados instalador, `.deb` y AppImage.
+* AppImage reconstruido con Python 3.14 y Qt 6.11, igualando el entorno de la versión 3.2.5 que funcionaba en Ubuntu, pero incluyendo el intérprete en el paquete.
+* Lanzador del `.deb` con `/usr/bin/steamcommandgen` absoluto y alias temporal para el comando de 3.2.5, que desaparecía al actualizar.
 * Instalador SteamOS/Linux de usuario con entorno Python propio para PyQt6 y `vdf`, independiente del Python global. Genera un `.desktop` con ruta absoluta y resuelve sus archivos según la ubicación del script.
 * Recursos gráficos accesibles desde el código fuente, instalaciones y AppImage; se corrigen los botones sin iconos.
 * Nuevo proceso de empaquetado AppImage que incluye su intérprete Python; el anterior enlazaba con `/usr/bin/python3` del equipo y fallaba al importar `PyQt6.sip` si la versión difería.

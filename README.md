@@ -149,7 +149,7 @@ On SteamOS, use the AppImage or the user installer. The installer creates its ow
 
 ### Building packages
 
-On Debian/Ubuntu x86_64, run `./packaging/build-deb.sh`. To build the AppImage, download the [official appimagetool](https://github.com/AppImage/appimagetool/releases), then run `APPIMAGETOOL=/path/to/appimagetool ./packaging/build-appimage.sh`. Both scripts write to `dist/` by default and accept an output directory as their first argument. The AppImage builder needs `python3-venv`, `pip` and internet access. The Debian package uses `python3-pyqt6` from the target distribution.
+On Debian/Ubuntu x86_64, run `./packaging/build-deb.sh`. To build the AppImage, install Python 3.14, download the [official appimagetool](https://github.com/AppImage/appimagetool/releases), then run `APPIMAGETOOL=/path/to/appimagetool ./packaging/build-appimage.sh`. Both scripts write to `dist/` by default and accept an output directory as their first argument. The AppImage builder needs Python 3.14 with `venv`, `pip` and internet access. The Debian package uses `python3-pyqt6` from the target distribution.
 
 ## Requirements
 

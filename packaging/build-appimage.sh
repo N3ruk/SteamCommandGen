@@ -14,14 +14,15 @@ if [[ -z "$tool" ]] || [[ ! -x "$tool" ]]; then
 fi
 tmp="$(mktemp -d)"
 trap 'rm -rf "$tmp"' EXIT
-python3 -m venv "$tmp/venv"
+"${PYTHON_FOR_APPIMAGE:-python3.14}" -m venv "$tmp/venv"
 "$tmp/venv/bin/python" -m pip install --disable-pip-version-check \
-    'pyinstaller==6.15.0' 'vdf==3.4' 'PyQt6==6.7.1' 'PyQt6-Qt6==6.7.3'
+    'pyinstaller==6.22.3' 'vdf==3.4' \
+    'PyQt6==6.11.0' 'PyQt6-Qt6==6.11.2' 'PyQt6-sip==13.12.0'
 "$tmp/venv/bin/pyinstaller" --noconfirm --clean --onedir \
     --name SteamCommandGen \
     --add-data "$repo/src/SteamCommandGen:SteamCommandGen" \
     --distpath "$tmp/dist" --workpath "$tmp/build" --specpath "$tmp" \
-    "$repo/src/SteamCommanderGen.py"
+    "$repo/src/SteamCommandGen.py"
 appdir="$tmp/SteamCommandGen.AppDir"
 mkdir -p "$appdir/usr/bin"
 cp -a "$tmp/dist/SteamCommandGen" "$appdir/usr/bin/"

@@ -14,11 +14,11 @@ if [[ -z "$python_bin" ]]; then
 fi
 
 app_root="$HOME/.local/share/SteamCommandGen"
-launcher="$HOME/.local/bin/SteamCommanderGen"
+launcher="$HOME/.local/bin/SteamCommandGen"
 desktop="$HOME/.local/share/applications/SteamCommandGen.desktop"
 icon="$HOME/.local/share/icons/hicolor/256x256/apps/SteamCommandGen.png"
 
-for file in SteamCommanderGen.py SteamCommandGen.desktop SteamCommandGen.png; do
+for file in SteamCommandGen.py SteamCommandGen.desktop SteamCommandGen.png; do
     [[ -f "$source_dir/$file" ]] || { echo "Falta $source_dir/$file" >&2; exit 1; }
 done
 for folder in BOTONES scaling; do
@@ -38,16 +38,18 @@ fi
 "$app_root/venv/bin/python" -c 'import vdf; from PyQt6 import QtCore, QtGui, QtWidgets, QtNetwork'
 
 mkdir -p "$app_root/app"
-cp -- "$source_dir/SteamCommanderGen.py" "$app_root/app/SteamCommanderGen.py"
+cp -- "$source_dir/SteamCommandGen.py" "$app_root/app/SteamCommandGen.py"
 cp -a -- "$source_dir/SteamCommandGen/." "$app_root/"
 cp -- "$source_dir/SteamCommandGen.png" "$icon"
 
 cat > "$launcher" <<EOF
 #!/usr/bin/env bash
-exec "$app_root/venv/bin/python" "$app_root/app/SteamCommanderGen.py" "\$@"
+exec "$app_root/venv/bin/python" "$app_root/app/SteamCommandGen.py" "\$@"
 EOF
 chmod +x "$launcher"
-rm -f -- "$HOME/.local/bin/SteamCommanderGen.py"
+rm -f -- "$HOME/.local/bin/SteamCommanderGen.py" \
+    "$HOME/.local/bin/SteamCommanderGen" \
+    "$app_root/app/SteamCommanderGen.py"
 
 cat > "$desktop" <<EOF
 [Desktop Entry]

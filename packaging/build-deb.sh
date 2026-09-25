@@ -8,7 +8,7 @@ out="$(cd "$out" && pwd -P)"
 tmp="$(mktemp -d)"
 trap 'rm -rf "$tmp"' EXIT
 pkg="$tmp/pkg"
-install -Dm644 "$repo/src/SteamCommanderGen.py" "$pkg/usr/lib/steamcommandgen/SteamCommanderGen.py"
+install -Dm644 "$repo/src/SteamCommandGen.py" "$pkg/usr/lib/steamcommandgen/SteamCommandGen.py"
 install -Dm644 "$repo/src/SteamCommandGen.png" "$pkg/usr/share/icons/hicolor/256x256/apps/SteamCommandGen.png"
 cp -a "$repo/src/SteamCommandGen" "$pkg/usr/share/SteamCommandGen"
 mkdir -p "$pkg/usr/lib/steamcommandgen/vendor" "$pkg/usr/bin" "$pkg/usr/share/applications" "$pkg/DEBIAN"
@@ -17,15 +17,16 @@ find "$pkg/usr/lib/steamcommandgen/vendor" -name '__pycache__' -type d -prune -e
 cat > "$pkg/usr/bin/steamcommandgen" <<'EOF'
 #!/usr/bin/env bash
 export PYTHONPATH="/usr/lib/steamcommandgen/vendor${PYTHONPATH:+:$PYTHONPATH}"
-exec /usr/bin/python3 /usr/lib/steamcommandgen/SteamCommanderGen.py "$@"
+exec /usr/bin/python3 /usr/lib/steamcommandgen/SteamCommandGen.py "$@"
 EOF
 chmod +x "$pkg/usr/bin/steamcommandgen"
+ln -s steamcommandgen "$pkg/usr/bin/SteamCommanderGen.py"
 cat > "$pkg/usr/share/applications/SteamCommandGen.desktop" <<'EOF'
 [Desktop Entry]
 Type=Application
 Name=SteamCommandGen
 Comment=Generador de comandos para Steam
-Exec=steamcommandgen
+Exec=/usr/bin/steamcommandgen
 Icon=SteamCommandGen
 Terminal=false
 Categories=Utility;Game;
