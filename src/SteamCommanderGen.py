@@ -21,8 +21,26 @@ from PyQt6.QtNetwork import (
 # RECURSOS DE LA APLICACIÓN
 # ============================================================
 
-INSTALL_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-RESOURCES_DIR = os.path.join(INSTALL_ROOT, "share", "SteamCommandGen")
+def find_resources_dir():
+    """Locate bundled assets in source, user/system installs and AppImage."""
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    candidates = []
+    if getattr(sys, "_MEIPASS", None):
+        candidates.append(os.path.join(sys._MEIPASS, "SteamCommandGen"))
+    candidates.extend((
+        os.path.join(script_dir, "SteamCommandGen"),
+        os.path.dirname(script_dir),
+        os.path.join(script_dir, "..", "share", "SteamCommandGen"),
+        os.path.join(script_dir, "..", "..", "share", "SteamCommandGen"),
+    ))
+    for candidate in candidates:
+        if all(os.path.isdir(os.path.join(candidate, name))
+               for name in ("scaling", "BOTONES")):
+            return os.path.abspath(candidate)
+    raise FileNotFoundError("Faltan los recursos de SteamCommandGen (scaling/BOTONES)")
+
+
+RESOURCES_DIR = find_resources_dir()
 SCALING_DIR = os.path.join(RESOURCES_DIR, "scaling")
 BUTTONS_DIR = os.path.join(RESOURCES_DIR, "BOTONES")
 
@@ -2497,16 +2515,6 @@ class GamescopeManager(
                 BUTTONS_DIR,
                 "MANGOHUD_CONFIG.svg"
             ),
-            os.path.abspath(
-                os.path.join(
-                    os.path.dirname(__file__),
-                    "..",
-                    "share",
-                    "SteamCommandGen",
-                    "BOTONES",
-                    "MANGOHUD_CONFIG.svg",
-                )
-            ),
         )
 
         config_icon = QtGui.QIcon()
@@ -3960,7 +3968,7 @@ def main():
     )
 
     app.setApplicationDisplayName(
-        "Steam Command Gen v3.2.5"
+        "Steam Command Gen v3.2.6"
     )
 
     win = (

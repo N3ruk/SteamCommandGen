@@ -1,55 +1,15 @@
-#!/bin/bash
-
-echo "========================================"
-echo "  Desinstalador de SteamCommandGen"
-echo "========================================"
-
-# Rutas
-BIN_PATH="$HOME/.local/bin/SteamCommanderGen.py"
-DESKTOP_PATH="$HOME/.local/share/applications/SteamCommandGen.desktop"
-ICON_PATH="$HOME/.local/share/icons/hicolor/256x256/apps/SteamCommandGen.png"
-RESOURCES_PATH="$HOME/.local/share/SteamCommandGen"
-
-echo "Eliminando archivos..."
-
-# Eliminar binario
-if [ -f "$BIN_PATH" ]; then
-    rm "$BIN_PATH"
-    echo "✔ Eliminado: $BIN_PATH"
-else
-    echo "⚠ No encontrado: $BIN_PATH"
+#!/usr/bin/env bash
+set -euo pipefail
+if (( EUID == 0 )); then
+    echo "Ejecuta este desinstalador sin sudo." >&2
+    exit 1
 fi
-
-# Eliminar .desktop
-if [ -f "$DESKTOP_PATH" ]; then
-    rm "$DESKTOP_PATH"
-    echo "✔ Eliminado: $DESKTOP_PATH"
-else
-    echo "⚠ No encontrado: $DESKTOP_PATH"
+rm -f -- "$HOME/.local/bin/SteamCommanderGen" \
+    "$HOME/.local/bin/SteamCommanderGen.py" \
+    "$HOME/.local/share/applications/SteamCommandGen.desktop" \
+    "$HOME/.local/share/icons/hicolor/256x256/apps/SteamCommandGen.png"
+rm -rf -- "$HOME/.local/share/SteamCommandGen"
+if command -v gtk-update-icon-cache >/dev/null 2>&1; then
+    gtk-update-icon-cache -f "$HOME/.local/share/icons/hicolor" >/dev/null 2>&1 || true
 fi
-
-# Eliminar icono
-if [ -f "$ICON_PATH" ]; then
-    rm "$ICON_PATH"
-    echo "✔ Eliminado: $ICON_PATH"
-else
-    echo "⚠ No encontrado: $ICON_PATH"
-fi
-
-# Eliminar recursos de la aplicación
-if [ -d "$RESOURCES_PATH" ]; then
-    rm -rf "$RESOURCES_PATH"
-    echo "✔ Eliminados recursos: $RESOURCES_PATH"
-else
-    echo "⚠ Recursos no encontrados: $RESOURCES_PATH"
-fi
-
-echo ""
-echo "Actualizando caché de iconos..."
-gtk-update-icon-cache "$HOME/.local/share/icons/hicolor"
-
-echo ""
-echo "========================================"
-echo "  Desinstalación completada"
-echo "========================================"
-echo "SteamCommandGen ha sido eliminado del sistema."
+echo "SteamCommandGen desinstalado."

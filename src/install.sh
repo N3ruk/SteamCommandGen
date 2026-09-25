@@ -1,125 +1,71 @@
-#!/bin/bash
+#!/usr/bin/env bash
+set -euo pipefail
 
-echo "========================================"
-echo "  Instalador de SteamCommandGen"
-echo "========================================"
+if (( EUID == 0 )); then
+    echo "Ejecuta este instalador como usuario, sin sudo." >&2
+    exit 1
+fi
 
-# Detectar distro
-detect_distro() {
-    if command -v apt >/dev/null 2>&1; then
-        echo "debian"
-    elif command -v pacman >/dev/null 2>&1; then
-        echo "arch"
-    elif command -v dnf >/dev/null 2>&1; then
-        echo "fedora"
-    else
-        echo "unknown"
-    fi
-}
+source_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)"
+python_bin="$(command -v python3 || true)"
+if [[ -z "$python_bin" ]]; then
+    echo "Falta Python 3. Instálalo con el gestor de paquetes de tu distribución." >&2
+    exit 1
+fi
 
-DISTRO=$(detect_distro)
+app_root="$HOME/.local/share/SteamCommandGen"
+launcher="$HOME/.local/bin/SteamCommanderGen"
+desktop="$HOME/.local/share/applications/SteamCommandGen.desktop"
+icon="$HOME/.local/share/icons/hicolor/256x256/apps/SteamCommandGen.png"
 
-echo "Detectando dependencias..."
+for file in SteamCommanderGen.py SteamCommandGen.desktop SteamCommandGen.png; do
+    [[ -f "$source_dir/$file" ]] || { echo "Falta $source_dir/$file" >&2; exit 1; }
+done
+for folder in BOTONES scaling; do
+    [[ -d "$source_dir/SteamCommandGen/$folder" ]] || { echo "Falta $folder" >&2; exit 1; }
+done
 
-# Función para comprobar módulos Python
-check_python_module() {
-    python3 - <<EOF
-import importlib
-try:
-    importlib.import_module("$1")
-except ImportError:
-    exit(1)
+# Prepare dependencies first so a failed pip download does not replace a working install.
+mkdir -p "$app_root" "$(dirname "$launcher")" "$(dirname "$desktop")" "$(dirname "$icon")"
+if [[ ! -x "$app_root/venv/bin/python" ]]; then
+    "$python_bin" -m venv "$app_root/venv" || {
+        echo "No se pudo crear el entorno Python. Instala python3-venv o el paquete equivalente." >&2
+        exit 1
+    }
+fi
+"$app_root/venv/bin/python" -m pip install --disable-pip-version-check \
+    'vdf==3.4' 'PyQt6==6.7.1' 'PyQt6-Qt6==6.7.3'
+"$app_root/venv/bin/python" -c 'import vdf; from PyQt6 import QtCore, QtGui, QtWidgets, QtNetwork'
+
+mkdir -p "$app_root/app"
+cp -- "$source_dir/SteamCommanderGen.py" "$app_root/app/SteamCommanderGen.py"
+cp -a -- "$source_dir/SteamCommandGen/." "$app_root/"
+cp -- "$source_dir/SteamCommandGen.png" "$icon"
+
+cat > "$launcher" <<EOF
+#!/usr/bin/env bash
+exec "$app_root/venv/bin/python" "$app_root/app/SteamCommanderGen.py" "\$@"
 EOF
-}
+chmod +x "$launcher"
+rm -f -- "$HOME/.local/bin/SteamCommanderGen.py"
 
-# Dependencias requeridas
-NEED_PYQT6=false
-NEED_VDF=false
+cat > "$desktop" <<EOF
+[Desktop Entry]
+Type=Application
+Name=SteamCommandGen
+Comment=Generador de comandos para Steam
+Exec="$launcher"
+Icon=SteamCommandGen
+Terminal=false
+Categories=Utility;Game;
+StartupNotify=true
+StartupWMClass=SteamCommandGen
+EOF
 
-# Comprobar Python3
-if ! command -v python3 >/dev/null 2>&1; then
-    echo "❌ Python3 no está instalado."
-    INSTALL_PYTHON=true
-else
-    echo "✔ Python3 OK"
+if command -v gtk-update-icon-cache >/dev/null 2>&1; then
+    gtk-update-icon-cache -f "$HOME/.local/share/icons/hicolor" >/dev/null 2>&1 || true
 fi
-
-# Comprobar PyQt6
-if ! check_python_module PyQt6; then
-    echo "❌ Falta PyQt6"
-    NEED_PYQT6=true
-else
-    echo "✔ PyQt6 OK"
+if command -v update-desktop-database >/dev/null 2>&1; then
+    update-desktop-database "$HOME/.local/share/applications" >/dev/null 2>&1 || true
 fi
-
-# Comprobar vdf
-if ! check_python_module vdf; then
-    echo "❌ Falta módulo vdf"
-    NEED_VDF=true
-else
-    echo "✔ vdf OK"
-fi
-
-echo ""
-echo "========================================"
-echo "  Instalando dependencias faltantes"
-echo "========================================"
-
-case $DISTRO in
-    debian)
-        echo "→ Sistema basado en Debian detectado"
-        sudo apt update
-
-        [ "$INSTALL_PYTHON" = true ] && sudo apt install -y python3
-        [ "$NEED_PYQT6" = true ] && sudo apt install -y python3-pyqt6
-        [ "$NEED_VDF" = true ] && sudo apt install -y python3-pip && pip3 install vdf
-        ;;
-    arch)
-        echo "→ Sistema basado en Arch detectado"
-        sudo pacman -Sy --noconfirm
-
-        [ "$INSTALL_PYTHON" = true ] && sudo pacman -S --noconfirm python
-        [ "$NEED_PYQT6" = true ] && sudo pacman -S --noconfirm python-pyqt6
-        [ "$NEED_VDF" = true ] && sudo pacman -S --noconfirm python-pip && pip install vdf
-        ;;
-    fedora)
-        echo "→ Sistema basado en Fedora detectado"
-        sudo dnf install -y python3 python3-pip
-
-        [ "$NEED_PYQT6" = true ] && sudo dnf install -y python3-qt5 python3-qt6
-        [ "$NEED_VDF" = true ] && pip3 install vdf
-        ;;
-    *)
-        echo "⚠ Distro desconocida. Instala manualmente:"
-        echo "   python3, PyQt6, vdf"
-        ;;
-esac
-
-echo ""
-echo "========================================"
-echo "  Instalando SteamCommandGen"
-echo "========================================"
-
-# Crear carpetas
-mkdir -p ~/.local/bin
-mkdir -p ~/.local/share/applications
-mkdir -p ~/.local/share/icons/hicolor/256x256/apps
-mkdir -p ~/.local/share/SteamCommandGen
-
-# Copiar archivos
-cp SteamCommanderGen.py ~/.local/bin/
-cp SteamCommandGen.desktop ~/.local/share/applications/
-cp SteamCommandGen.png ~/.local/share/icons/hicolor/256x256/apps/
-cp -a SteamCommandGen/. ~/.local/share/SteamCommandGen/
-
-# Permisos
-chmod +x ~/.local/bin/SteamCommanderGen.py
-
-# Actualizar caché de iconos
-gtk-update-icon-cache ~/.local/share/icons/hicolor
-
-echo ""
-echo "========================================"
-echo "  Instalación completada"
-echo "========================================"
-echo "Puedes ejecutar SteamCommandGen desde el menú de aplicaciones."
+echo "SteamCommandGen instalado en $app_root"

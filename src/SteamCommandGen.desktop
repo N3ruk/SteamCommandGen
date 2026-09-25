@@ -1,7 +1,7 @@
 [Desktop Entry]
 Name=SteamCommandGen
 Comment=Generador de Comandos para steam
-Exec=SteamCommanderGen.py
+Exec=steamcommandgen
 Icon=SteamCommandGen
 Terminal=false
 Type=Application

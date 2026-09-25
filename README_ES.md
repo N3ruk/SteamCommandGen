@@ -4,7 +4,7 @@
 
 Permite configurar de forma sencilla y visual resoluciones, tecnologías de escalado, nitidez, HDR, VRR, baja latencia, `WINEDLLOVERRIDES` y MangoHud, generando automáticamente las `LaunchOptions` necesarias para cada juego.
 
-> Versión actual: **SteamCommandGen v3.2.5**
+> Versión actual: **SteamCommandGen v3.2.6**
 
 ![SteamCommandGen Screenshot](assets/screenshots/main.png)
 
@@ -152,22 +152,28 @@ La versión más reciente está en **[Releases](../../releases)**.
 ## Paquete `.deb`
 
 ```bash
-sudo apt install ./SteamCommandGen_x.x.x_amd64.deb
+sudo apt install ./SteamCommandGen_3.2.6_amd64.deb
 ```
 
 ## Script instalador
 
 ```bash
-chmod +x install.sh
-./install.sh
+cd src
+./install.sh  # como usuario normal, sin sudo
 ```
 
 ## AppImage
 
 ```bash
-chmod +x SteamCommandGen-x86_64.AppImage
-./SteamCommandGen-x86_64.AppImage
+chmod +x SteamCommandGen-3.2.6-x86_64.AppImage
+./SteamCommandGen-3.2.6-x86_64.AppImage
 ```
+
+En SteamOS usa el AppImage o el instalador de usuario. El instalador crea su propio entorno Python, requiere internet en la primera instalación y debe ejecutarse **sin `sudo`**.
+
+## Construir los paquetes
+
+En Debian/Ubuntu x86_64 ejecuta `./packaging/build-deb.sh`. Para el AppImage, descarga [appimagetool oficial](https://github.com/AppImage/appimagetool/releases) y ejecuta `APPIMAGETOOL=/ruta/a/appimagetool ./packaging/build-appimage.sh`. Ambos scripts escriben en `dist/` por defecto y admiten una carpeta de salida como primer argumento. La construcción del AppImage requiere `python3-venv`, `pip` e internet; el `.deb` usa `python3-pyqt6` de la distribución.
 
 ---
 

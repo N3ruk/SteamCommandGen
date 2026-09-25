@@ -2,7 +2,7 @@
 
 **SteamCommandGen** is a graphical **Gamescope configuration tool for Steam on Linux**. It helps you build, apply and manage Steam launch options for **AMD FSR, NVIDIA NIS, HDR, VRR / Adaptive Sync, MangoHud, resolution scaling and low-latency options** without manually writing long Gamescope commands.
 
-> Current version: **SteamCommandGen v3.2.5**  
+> Current version: **SteamCommandGen v3.2.6**
 > Español: **[README_ES.md](README_ES.md)**
 
 ![SteamCommandGen screenshot](assets/screenshots/main.png)
@@ -128,22 +128,28 @@ Download the latest build from **[GitHub Releases](../../releases)**.
 ### Debian / Ubuntu package
 
 ```bash
-sudo apt install ./SteamCommandGen_x.x.x_amd64.deb
+sudo apt install ./SteamCommandGen_3.2.6_amd64.deb
 ```
 
 ### Installer script
 
 ```bash
-chmod +x install.sh
-./install.sh
+cd src
+./install.sh  # as your regular user, without sudo
 ```
 
 ### AppImage
 
 ```bash
-chmod +x SteamCommandGen-x86_64.AppImage
-./SteamCommandGen-x86_64.AppImage
+chmod +x SteamCommandGen-3.2.6-x86_64.AppImage
+./SteamCommandGen-3.2.6-x86_64.AppImage
 ```
+
+On SteamOS, use the AppImage or the user installer. The installer creates its own Python environment and needs an internet connection on the first run. Do not run it with `sudo`.
+
+### Building packages
+
+On Debian/Ubuntu x86_64, run `./packaging/build-deb.sh`. To build the AppImage, download the [official appimagetool](https://github.com/AppImage/appimagetool/releases), then run `APPIMAGETOOL=/path/to/appimagetool ./packaging/build-appimage.sh`. Both scripts write to `dist/` by default and accept an output directory as their first argument. The AppImage builder needs `python3-venv`, `pip` and internet access. The Debian package uses `python3-pyqt6` from the target distribution.
 
 ## Requirements
 

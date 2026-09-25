@@ -4,6 +4,15 @@ Todos los cambios relevantes de **Steam Command Gen** quedan documentados en est
 
 ---
 
+## [3.2.6] - 2026-09-25
+
+* Instalador SteamOS/Linux de usuario con entorno Python propio para PyQt6 y `vdf`, independiente del Python global. Genera un `.desktop` con ruta absoluta y resuelve sus archivos según la ubicación del script.
+* Recursos gráficos accesibles desde el código fuente, instalaciones y AppImage; se corrigen los botones sin iconos.
+* Nuevo proceso de empaquetado AppImage que incluye su intérprete Python; el anterior enlazaba con `/usr/bin/python3` del equipo y fallaba al importar `PyQt6.sip` si la versión difería.
+* Nuevo empaquetado `.deb` con `vdf` incluido y PyQt6 como dependencia de Debian/Ubuntu.
+
+---
+
 ## [3.2.5] - 2026-09-21
 
 > Cambios acumulados desde **2.0.0**.  
