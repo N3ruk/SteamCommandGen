@@ -44,5 +44,7 @@ Depends: python3 (>= 3.10), python3-pyqt6
 Description: Steam launch options generator with Gamescope and MangoHud
  Graphical launch options editor for Steam games.
 EOF
+install -m755 "$repo/packaging/debian/postinst" "$pkg/DEBIAN/postinst"
+install -m755 "$repo/packaging/debian/postrm" "$pkg/DEBIAN/postrm"
 chmod -R a+rX "$pkg"
 dpkg-deb --root-owner-group --build "$pkg" "$out/SteamCommandGen_${version}_amd64.deb"

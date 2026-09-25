@@ -1,0 +1,45 @@
+name: Update Debian package v3.2.6
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'packaging/build-deb.sh'
+      - 'packaging/debian/postinst'
+      - 'packaging/debian/postrm'
+      - '.github/workflows/release-deb-3.2.6.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  deb-only:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Add the maintainer scripts to the existing package
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p dist
+          gh release download v3.2.6 --pattern 'SteamCommandGen_3.2.6_amd64.deb' --dir "$RUNNER_TEMP"
+          dpkg-deb --raw-extract "$RUNNER_TEMP/SteamCommandGen_3.2.6_amd64.deb" "$RUNNER_TEMP/package"
+          install -m755 packaging/debian/postinst "$RUNNER_TEMP/package/DEBIAN/postinst"
+          install -m755 packaging/debian/postrm "$RUNNER_TEMP/package/DEBIAN/postrm"
+          dpkg-deb --root-owner-group --build "$RUNNER_TEMP/package" dist/SteamCommandGen_3.2.6_amd64.deb
+      - name: Replace only the Debian package and checksums
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          app_sha="$(gh api "repos/$GITHUB_REPOSITORY/releases/tags/v3.2.6" --jq '.assets[] | select(.name == "SteamCommandGen-3.2.6-x86_64.AppImage") | .digest' | cut -d: -f2)"
+          zip_sha="$(gh api "repos/$GITHUB_REPOSITORY/releases/tags/v3.2.6" --jq '.assets[] | select(.name == "steamcommandgen_3.2.6.zip") | .digest' | cut -d: -f2)"
+          test -n "$app_sha"
+          test -n "$zip_sha"
+          (
+            cd dist
+            printf '%s  %s\n' "$app_sha" "SteamCommandGen-3.2.6-x86_64.AppImage"
+            sha256sum SteamCommandGen_3.2.6_amd64.deb
+            printf '%s  %s\n' "$zip_sha" "steamcommandgen_3.2.6.zip"
+          ) > dist/SHA256SUMS
+          gh release upload v3.2.6 dist/SteamCommandGen_3.2.6_amd64.deb dist/SHA256SUMS --clobber
+          gh api -X PATCH "repos/$GITHUB_REPOSITORY/git/refs/tags/v3.2.6" -f sha="$GITHUB_SHA" -F force=true >/dev/null
