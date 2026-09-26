@@ -2337,11 +2337,6 @@ class GamescopeManager(
             )
         )
 
-        self.details_layout.addRow(
-            self.fsr_sharpness_label,
-            self.sharpness_box
-        )
-
         # ====================================================
         # NITIDEZ NIS
         # ====================================================
@@ -2352,30 +2347,26 @@ class GamescopeManager(
             )
         )
 
+        # Both scalers use the same form row. Stacked widgets retain the
+        # larger page's size hint, so switching FSR/NIS cannot add a row or
+        # make a window manager enlarge the top-level window.
+        self.sharpness_labels = QtWidgets.QStackedWidget()
+        self.sharpness_labels.addWidget(self.fsr_sharpness_label)
+        self.sharpness_labels.addWidget(self.nis_sharpness_label)
+        self.sharpness_controls = QtWidgets.QStackedWidget()
+        self.sharpness_controls.addWidget(self.sharpness_box)
+        self.sharpness_controls.addWidget(self.nis_box)
         self.details_layout.addRow(
-            self.nis_sharpness_label,
-            self.nis_box
+            self.sharpness_labels,
+            self.sharpness_controls
         )
 
         # ====================================================
         # OCULTAR NITIDEZ INICIALMENTE
         # ====================================================
 
-        self.fsr_sharpness_label.setVisible(
-            False
-        )
-
-        self.sharpness_box.setVisible(
-            False
-        )
-
-        self.nis_sharpness_label.setVisible(
-            False
-        )
-
-        self.nis_box.setVisible(
-            False
-        )
+        self.sharpness_labels.hide()
+        self.sharpness_controls.hide()
 
         # ====================================================
         # WINEDLLOVERRIDES
@@ -2888,8 +2879,6 @@ class GamescopeManager(
 
     def update_scaling_ui(self):
 
-        window_size = self.size()
-
         is_fsr = (
             self.scaling_mode == "fsr"
         )
@@ -2898,21 +2887,11 @@ class GamescopeManager(
             self.scaling_mode == "nis"
         )
 
-        self.fsr_sharpness_label.setVisible(
-            is_fsr
-        )
-
-        self.sharpness_box.setVisible(
-            is_fsr
-        )
-
-        self.nis_sharpness_label.setVisible(
-            is_nis
-        )
-
-        self.nis_box.setVisible(
-            is_nis
-        )
+        index = 1 if is_nis else 0
+        self.sharpness_labels.setCurrentIndex(index)
+        self.sharpness_controls.setCurrentIndex(index)
+        self.sharpness_labels.setVisible(is_fsr or is_nis)
+        self.sharpness_controls.setVisible(is_fsr or is_nis)
 
         self.sharpness_slider.setEnabled(
             is_fsr
@@ -2924,9 +2903,6 @@ class GamescopeManager(
 
         if getattr(self, "_responsive_ready", False):
             self._fit_layout()
-            # Qt may apply a pending size hint after showing a slider. Keep
-            # the user's chosen window size once that layout pass completes.
-            QtCore.QTimer.singleShot(0, lambda: self.resize(window_size))
 
     # ============================================================
     # RESET ESCALADO
