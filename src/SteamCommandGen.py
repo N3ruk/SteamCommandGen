@@ -1478,10 +1478,11 @@ class GamescopeManager(
             )
         )
 
-        self.resize(
-            1200,
-            700
-        )
+        # Start inside the usable desktop area, including 1280x720 desktops.
+        screen = QtWidgets.QApplication.primaryScreen()
+        available = screen.availableGeometry() if screen else QtCore.QRect(0, 0, 1280, 720)
+        self.resize(min(1200, available.width() - 40),
+                    min(700, available.height() - 40))
 
         self.games = []
         self.current_game = None
@@ -1518,6 +1519,7 @@ class GamescopeManager(
         self.img_label.setFixedHeight(
             200
         )
+        self._game_pixmap = None
 
         self.img_label.setAlignment(
             QtCore.Qt.AlignmentFlag.AlignCenter
@@ -2092,6 +2094,7 @@ class GamescopeManager(
                 main_widget
             )
         )
+        self.main_layout = main_layout
 
         # ====================================================
         # PANEL IZQUIERDO
@@ -2122,6 +2125,7 @@ class GamescopeManager(
         right = (
             QtWidgets.QVBoxLayout()
         )
+        self.right_layout = right
 
         right.addWidget(
             QtWidgets.QLabel(
@@ -2177,21 +2181,15 @@ class GamescopeManager(
         # BOTONES INFERIORES
         # ====================================================
 
-        buttons_layout = (
-            QtWidgets.QHBoxLayout()
+        buttons_layout = QtWidgets.QGridLayout()
+        self.buttons_layout = buttons_layout
+        self.action_buttons = (
+            self.btn_preview, self.btn_copy, self.btn_apply,
+            self.btn_clear, self.btn_kill_steam,
         )
 
-        for button in (
-            self.btn_preview,
-            self.btn_copy,
-            self.btn_apply,
-            self.btn_clear,
-            self.btn_kill_steam
-        ):
-
-            buttons_layout.addWidget(
-                button
-            )
+        for column, button in enumerate(self.action_buttons):
+            buttons_layout.addWidget(button, 0, column)
 
         right.addLayout(
             buttons_layout
@@ -2266,6 +2264,7 @@ class GamescopeManager(
                 scaling_buttons_widget
             )
         )
+        self.scaling_buttons_layout = scaling_buttons_layout
 
         scaling_buttons_layout.setContentsMargins(
             0, 0, 0, 0
@@ -2380,9 +2379,7 @@ class GamescopeManager(
             QtWidgets.QWidget()
         )
 
-        display_checks_widget.setFixedWidth(
-            210
-        )
+        display_checks_widget.setMinimumWidth(0)
 
         display_checks = (
             QtWidgets.QVBoxLayout(
@@ -2426,9 +2423,7 @@ class GamescopeManager(
             QtWidgets.QWidget()
         )
 
-        mangohud_widget.setFixedWidth(
-            210
-        )
+        mangohud_widget.setMinimumWidth(0)
 
         mangohud_column = (
             QtWidgets.QVBoxLayout(
@@ -2488,9 +2483,7 @@ class GamescopeManager(
             QtWidgets.QWidget()
         )
 
-        config_widget.setFixedWidth(
-            210
-        )
+        config_widget.setMinimumWidth(0)
 
         config_layout = (
             QtWidgets.QVBoxLayout(
@@ -2588,6 +2581,7 @@ class GamescopeManager(
         display_options_layout.addWidget(
             config_widget
         )
+        self.display_options_layout = display_options_layout
 
         # ====================================================
         # AÑADIR A LA INTERFAZ
@@ -2596,6 +2590,11 @@ class GamescopeManager(
         self.details_layout.addRow(
             display_options_widget
         )
+
+        # Only geometry changes with the available space; controls and their
+        # signal connections remain the same on X11, Wayland and SteamOS.
+        self._responsive_ready = True
+        self._fit_layout()
 
         # ====================================================
         # CONEXIONES GENERALES
@@ -2647,6 +2646,53 @@ class GamescopeManager(
             "Cierre Steam antes de continuar."
         )
 
+    def resizeEvent(self, event):
+        super().resizeEvent(event)
+        if getattr(self, "_responsive_ready", False):
+            self._fit_layout()
+
+    def _fit_layout(self):
+        height = self.height()
+        width = self.width()
+        # Keep the original proportions whenever the window has room.
+        factor = max(0.47, min(1.0, (height - 480) / 520))
+        self.img_label.setFixedHeight(round(200 * factor))
+        self._fit_game_image()
+        for button in (self.btn_fsr, self.btn_nis, self.btn_nearest):
+            button_width = min(210, max(105, (width - 320) // 3))
+            button.setFixedSize(button_width, round(145 * factor))
+            button.setIconSize(QtCore.QSize(button_width - 10,
+                                            round(135 * factor)))
+        for button in (self.btn_mangohud, self.btn_mangohud_config):
+            side = round(110 * factor)
+            button.setFixedSize(side, side)
+            button.setIconSize(QtCore.QSize(side - 18, side - 18))
+
+        self.exec_list.setMinimumHeight(30)
+        self.cmd_text.setMinimumHeight(36)
+        self.main_layout.setSpacing(round(6 * factor))
+        self.right_layout.setSpacing(round(6 * factor))
+        self.details_layout.setVerticalSpacing(round(6 * factor))
+        self.scaling_buttons_layout.setSpacing(round(6 * factor))
+        self.display_options_layout.setContentsMargins(0, round(8 * factor),
+                                                       0, round(8 * factor))
+
+        columns = 5 if width >= 1100 else 3
+        if getattr(self, "_action_columns", None) != columns:
+            self._action_columns = columns
+            for index, button in enumerate(self.action_buttons):
+                self.buttons_layout.addWidget(button, index // columns,
+                                              index % columns)
+
+    def _fit_game_image(self):
+        if self._game_pixmap is not None:
+            self.img_label.setPixmap(self._game_pixmap.scaled(
+                min(400, max(1, self.img_label.width())),
+                self.img_label.height(),
+                QtCore.Qt.AspectRatioMode.KeepAspectRatio,
+                QtCore.Qt.TransformationMode.SmoothTransformation,
+            ))
+
     # ============================================================
     # CARGAR IMAGEN DEL JUEGO
     # ============================================================
@@ -2679,12 +2725,8 @@ class GamescopeManager(
                     reply.readAll()
                 ):
 
-                    self.img_label.setPixmap(
-                        pixmap.scaledToWidth(
-                            400,
-                            QtCore.Qt.TransformationMode.SmoothTransformation
-                        )
-                    )
+                    self._game_pixmap = pixmap
+                    self._fit_game_image()
 
             reply.deleteLater()
 
@@ -3437,52 +3479,9 @@ class GamescopeManager(
                 item
             )
 
-        # ====================================================
-        # ANCHO AUTOMÁTICO
-        # ====================================================
-
-        font_metrics = (
-            self.game_list.fontMetrics()
-        )
-
-        max_text_width = 0
-
-        for index in range(
-            self.game_list.count()
-        ):
-
-            item = (
-                self.game_list.item(index)
-            )
-
-            text_width = (
-                font_metrics.horizontalAdvance(
-                    item.text()
-                )
-            )
-
-            max_text_width = max(
-                max_text_width,
-                text_width
-            )
-
-        required_width = max(
-            max_text_width + 180,
-            350
-        )
-
-        required_width = min(
-            required_width,
-            800
-        )
-
-        self.game_list.setMinimumWidth(
-            required_width
-        )
-
-        self.game_list.setMaximumWidth(
-            required_width
-        )
+        # A long game title must not increase the minimum width of the window.
+        self.game_list.setMinimumWidth(0)
+        self.game_list.setMaximumWidth(16777215)
 
         self.game_list.updateGeometry()
 
@@ -3519,6 +3518,7 @@ class GamescopeManager(
 
             self.exec_list.clear()
 
+            self._game_pixmap = None
             self.img_label.clear()
 
             self.cmd_text.clear()
@@ -3553,6 +3553,7 @@ class GamescopeManager(
                 executable
             )
 
+        self._game_pixmap = None
         self.img_label.clear()
 
         self.load_image(
@@ -3968,7 +3969,7 @@ def main():
     )
 
     app.setApplicationDisplayName(
-        "Steam Command Gen v3.2.6"
+        "Steam Command Gen v3.2.7"
     )
 
     win = (

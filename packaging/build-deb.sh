@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 repo="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd -P)"
-version="3.2.6"
+version="3.2.7"
 out="${1:-$repo/dist}"
 mkdir -p "$out"
 out="$(cd "$out" && pwd -P)"

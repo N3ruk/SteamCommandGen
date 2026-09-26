@@ -4,6 +4,15 @@ Todos los cambios relevantes de **Steam Command Gen** quedan documentados en est
 
 ---
 
+## [3.2.7] - 2026-09-26
+
+* La ventana se abre dentro del área útil del escritorio y cabe en resoluciones de 720p.
+* Imágenes, botones y separaciones se adaptan al tamaño de la ventana; las acciones se distribuyen en dos filas cuando falta anchura, sin barras de desplazamiento.
+* La lista de juegos deja de fijar la anchura de la ventana según el título más largo. Las carátulas conservan su proporción al redimensionar.
+* Sin cambios en la lógica de los comandos ni en la instalación de Ubuntu y SteamOS.
+
+---
+
 ## [3.2.6] - 2026-09-25
 
 * Homogeneizado el archivo principal como `SteamCommandGen.py` y actualizados instalador, `.deb` y AppImage.
