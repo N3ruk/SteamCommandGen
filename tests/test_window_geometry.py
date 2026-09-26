@@ -18,6 +18,17 @@ class WindowGeometryTest(unittest.TestCase):
     def setUpClass(cls):
         cls.app = QtWidgets.QApplication.instance() or QtWidgets.QApplication([])
 
+    def assert_inside_parents(self, widget, central):
+        while widget is not central:
+            parent = widget.parentWidget()
+            self.assertIsNotNone(parent)
+            self.assertTrue(
+                parent.rect().contains(widget.geometry()),
+                f"{widget.__class__.__name__} {widget.geometry()} "
+                f"outside {parent.__class__.__name__} {parent.rect()}",
+            )
+            widget = parent
+
     def check_screen(self, width, height, font_points):
         screen = self.app.primaryScreen()
         old_geometry = screen.availableGeometry
@@ -25,49 +36,57 @@ class WindowGeometryTest(unittest.TestCase):
         screen.availableGeometry = lambda: QtCore.QRect(0, 0, width, height)
         if font_points:
             self.app.setFont(QtGui.QFont("DejaVu Sans", font_points))
-        window = None
         try:
-            with patch.object(QtWidgets.QMessageBox, "information"), \
-                    patch.object(app_module.GamescopeManager, "load_image"), \
-                    patch.object(app_module.GamescopeManager, "load_icon"), \
-                    patch.object(app_module, "get_active_launch_options", return_value=""):
-                window = app_module.GamescopeManager()
-                window.screen = lambda: screen
-                window.show()
-                window.resize(window.maximumWidth(), window.maximumHeight())
-                self.app.processEvents()
-                window.scan_finished([{
-                    "name": "Game " * 30,
-                    "appid": "42",
-                    "game_dir": "/steam/" + "very-long-directory/" * 50,
-                    "executables": ["game.exe"],
-                }])
-                window.game_list.setCurrentRow(0)
-                window._game_pixmap = QtGui.QPixmap(400, 200)
-                window._fit_game_image()
-                self.app.processEvents()
-                initial_size = window.size()
-                active_minimum = None
+            for select_game in (False, True):
+                window = None
+                with self.subTest(select_game=select_game), \
+                        patch.object(QtWidgets.QMessageBox, "information"), \
+                        patch.object(app_module.GamescopeManager, "load_image"), \
+                        patch.object(app_module.GamescopeManager, "load_icon"), \
+                        patch.object(app_module, "get_active_launch_options", return_value=""):
+                    try:
+                        window = app_module.GamescopeManager()
+                        window.screen = lambda: screen
+                        window.show()
+                        window.resize(window.maximumWidth(), window.maximumHeight())
+                        self.app.processEvents()
+                        window.scan_finished([{
+                            "name": "Game " * 30,
+                            "appid": "42",
+                            "game_dir": "/steam/" + "very-long-directory/" * 50,
+                            "executables": ["game.exe"],
+                        }])
+                        if select_game:
+                            window.game_list.setCurrentRow(0)
+                            window._game_pixmap = QtGui.QPixmap(400, 200)
+                            window._fit_game_image()
+                        self.app.processEvents()
+                        initial_size = window.size()
 
-                for index in range(40):
-                    (window.btn_fsr if index % 2 == 0 else window.btn_nis).click()
-                    self.app.processEvents()
-                    if active_minimum is None:
-                        active_minimum = window.minimumSizeHint().height()
-                    self.assertEqual(window.minimumSizeHint().height(), active_minimum)
-                    self.assertEqual(window.size(), initial_size,
-                                     (index, window.minimumSizeHint(), window.btn_fsr.height()))
-                    self.assertLessEqual(window.height(), window.maximumHeight())
-                    self.assertLessEqual(window.minimumSizeHint().height(), window.height())
-                    central = window.centralWidget()
-                    for control in (window.sharpness_controls, window.cmd_text,
-                                    window.btn_preview, window.btn_kill_steam):
-                        top = control.mapTo(central, QtCore.QPoint()).y()
-                        self.assertGreaterEqual(top, 0)
-                        self.assertLessEqual(top + control.height(), central.height())
+                        for index in range(40):
+                            (window.btn_fsr, window.btn_nis,
+                             window.btn_nearest)[index % 3].click()
+                            self.app.processEvents()
+                            self.assertEqual(window.size(), initial_size)
+                            self.assertLessEqual(window.height(), window.maximumHeight())
+                            self.assertLessEqual(window.minimumSizeHint().height(), window.height())
+                            central = window.centralWidget()
+                            for control in (
+                                    window.btn_fsr, window.btn_nis, window.btn_nearest,
+                                    window.btn_mangohud, window.btn_mangohud_config,
+                                    window.sharpness_labels.currentWidget(),
+                                    window.sharpness_controls.currentWidget(),
+                                    window.sharpness_slider if index % 3 == 0
+                                    else window.nis_slider if index % 3 == 1
+                                    else window.sharpness_controls,
+                                    window.cmd_text, window.btn_preview,
+                                    window.btn_kill_steam,
+                            ):
+                                self.assert_inside_parents(control, central)
+                    finally:
+                        if window is not None:
+                            window.close()
         finally:
-            if window is not None:
-                window.close()
             screen.availableGeometry = old_geometry
             self.app.setFont(old_font)
 

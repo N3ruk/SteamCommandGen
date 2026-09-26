@@ -2720,6 +2720,12 @@ class GamescopeManager(
             factor = min(factor, 0.35)
         for _ in range(16):
             self._set_layout_scale(factor, width)
+            # Flush Qt's deferred layout requests before reading the minimum:
+            # otherwise form rows can retain the previous button height and
+            # clip the scaler/MangoHud buttons after changing FSR or NIS.
+            QtWidgets.QApplication.sendPostedEvents(
+                None, QtCore.QEvent.Type.LayoutRequest
+            )
             self.main_layout.activate()
             self.centralWidget().updateGeometry()
             self.layout().invalidate()
