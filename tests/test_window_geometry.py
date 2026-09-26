@@ -47,10 +47,14 @@ class WindowGeometryTest(unittest.TestCase):
                 window._fit_game_image()
                 self.app.processEvents()
                 initial_size = window.size()
+                active_minimum = None
 
                 for index in range(40):
                     (window.btn_fsr if index % 2 == 0 else window.btn_nis).click()
                     self.app.processEvents()
+                    if active_minimum is None:
+                        active_minimum = window.minimumSizeHint().height()
+                    self.assertEqual(window.minimumSizeHint().height(), active_minimum)
                     self.assertEqual(window.size(), initial_size,
                                      (index, window.minimumSizeHint(), window.btn_fsr.height()))
                     self.assertLessEqual(window.height(), window.maximumHeight())

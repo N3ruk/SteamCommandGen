@@ -2356,17 +2356,19 @@ class GamescopeManager(
         self.sharpness_controls = QtWidgets.QStackedWidget()
         self.sharpness_controls.addWidget(self.sharpness_box)
         self.sharpness_controls.addWidget(self.nis_box)
+        self.sharpness_labels.addWidget(QtWidgets.QLabel())
+        self.sharpness_controls.addWidget(QtWidgets.QWidget())
         self.details_layout.addRow(
             self.sharpness_labels,
             self.sharpness_controls
         )
 
         # ====================================================
-        # OCULTAR NITIDEZ INICIALMENTE
+        # RESERVAR LA FILA DE NITIDEZ DESDE EL INICIO
         # ====================================================
 
-        self.sharpness_labels.hide()
-        self.sharpness_controls.hide()
+        self.sharpness_labels.setCurrentIndex(2)
+        self.sharpness_controls.setCurrentIndex(2)
 
         # ====================================================
         # WINEDLLOVERRIDES
@@ -2718,10 +2720,17 @@ class GamescopeManager(
             factor = min(factor, 0.35)
         for _ in range(16):
             self._set_layout_scale(factor, width)
+            self.main_layout.activate()
+            self.centralWidget().updateGeometry()
+            self.layout().invalidate()
             excess = self.main_layout.minimumSize().height() - usable_height
             if excess <= 0 or factor <= 0.20:
                 break
             factor = max(0.20, factor - max(0.04, excess / 450))
+
+        minimum = self.main_layout.minimumSize()
+        self.setMinimumSize(min(minimum.width(), self.maximumWidth()),
+                            min(minimum.height(), self.maximumHeight()))
 
         # If a minimum-size hint grew the window before the new layout took
         # effect, bring it back inside the screen's usable area.
@@ -2907,11 +2916,9 @@ class GamescopeManager(
             self.scaling_mode == "nis"
         )
 
-        index = 1 if is_nis else 0
+        index = 0 if is_fsr else 1 if is_nis else 2
         self.sharpness_labels.setCurrentIndex(index)
         self.sharpness_controls.setCurrentIndex(index)
-        self.sharpness_labels.setVisible(is_fsr or is_nis)
-        self.sharpness_controls.setVisible(is_fsr or is_nis)
 
         self.sharpness_slider.setEnabled(
             is_fsr
@@ -2923,9 +2930,6 @@ class GamescopeManager(
 
         if getattr(self, "_responsive_ready", False):
             self._fit_layout()
-            # Qt can post another size-hint update when the stacked page
-            # changes. Recheck the actual minimum after that layout pass.
-            QtCore.QTimer.singleShot(0, self._fit_layout)
 
     # ============================================================
     # RESET ESCALADO
