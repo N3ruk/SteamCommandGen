@@ -4,6 +4,14 @@ Todos los cambios relevantes de **Steam Command Gen** quedan documentados en est
 
 ---
 
+## [3.2.8] - 2026-09-26
+
+* Corregido el crecimiento de la ventana tras cargar juegos y mostrar los controles de nitidez FSR/NIS. Las rutas largas y los títulos largos ya no fuerzan el tamaño de la ventana.
+* Los controles y botones permanecen visibles dentro del área útil de 720p al cambiar de tecnología de reescalado, sin superposiciones.
+* Notas de las releases en inglés primero y español después. Sin cambios en la generación de comandos.
+
+---
+
 ## [3.2.7] - 2026-09-26
 
 * La ventana se abre dentro del área útil del escritorio y cabe en resoluciones de 720p.

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 repo="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd -P)"
-version="3.2.7"
+version="3.2.8"
 out="${1:-$repo/dist}"
 mkdir -p "$out"
 out="$(cd "$out" && pwd -P)"
@@ -47,4 +47,14 @@ chmod +x "$appdir/AppRun"
 # Refuse to ship the old kind of AppImage whose interpreter points to /usr/bin/python3.
 find "$appdir/usr/bin/SteamCommandGen/_internal" -maxdepth 1 -name 'libpython3*.so*' | grep -q . || \
     { echo "No se ha incluido el runtime Python." >&2; exit 1; }
-ARCH=x86_64 "$tool" "$appdir" "$out/SteamCommandGen-${version}-x86_64.AppImage"
+runtime_args=()
+if [[ -n "${APPIMAGE_RUNTIME:-}" ]]; then
+    runtime_args=(--runtime-file "$APPIMAGE_RUNTIME")
+fi
+image="$out/SteamCommandGen-${version}-x86_64.AppImage"
+ARCH=x86_64 "$tool" "${runtime_args[@]}" "$appdir" "$image"
+# appimagetool can report success after a failed runtime download. Check the
+# actual ELF header before a release asset is considered complete.
+[[ "$(head -c 4 "$image" | od -An -tx1 | tr -d ' \n')" == "7f454c46" ]] || \
+    { echo "El AppImage generado no contiene un runtime ELF válido." >&2; exit 1; }
+chmod +x "$image"

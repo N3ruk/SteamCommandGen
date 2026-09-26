@@ -1354,6 +1354,35 @@ class GameScanWorker(QtCore.QObject):
         except Exception as error:
             self.failed.emit(str(error))
 
+class ElidedPathLabel(QtWidgets.QLabel):
+    """Show a long game path without changing the window's size hint."""
+
+    def __init__(self):
+        super().__init__("")
+        self.full_path = ""
+
+    def set_path(self, path):
+        self.full_path = path
+        self.setToolTip(path)
+        self._update_display()
+
+    def clear(self):
+        self.full_path = ""
+        super().clear()
+
+    def resizeEvent(self, event):
+        super().resizeEvent(event)
+        self._update_display()
+
+    def _update_display(self):
+        display = self.fontMetrics().elidedText(
+            self.full_path, QtCore.Qt.TextElideMode.ElideMiddle,
+            max(0, self.width() - 2),
+        )
+        if display != self.text():
+            super().setText(display)
+
+
 class GamescopeManager(
     QtWidgets.QMainWindow
 ):
@@ -1481,6 +1510,8 @@ class GamescopeManager(
         # Start inside the usable desktop area, including 1280x720 desktops.
         screen = QtWidgets.QApplication.primaryScreen()
         available = screen.availableGeometry() if screen else QtCore.QRect(0, 0, 1280, 720)
+        self.setMaximumSize(max(1, available.width() - 40),
+                            max(1, available.height() - 40))
         self.resize(min(1200, available.width() - 40),
                     min(700, available.height() - 40))
 
@@ -1507,6 +1538,10 @@ class GamescopeManager(
                 45
             )
         )
+        self.game_list.setHorizontalScrollBarPolicy(
+            QtCore.Qt.ScrollBarPolicy.ScrollBarAlwaysOff
+        )
+        self.game_list.setTextElideMode(QtCore.Qt.TextElideMode.ElideRight)
 
         # ====================================================
         # IMAGEN
@@ -1998,7 +2033,13 @@ class GamescopeManager(
         # ====================================================
 
         self.lbl_game_dir = (
-            QtWidgets.QLabel("")
+            ElidedPathLabel()
+        )
+        # A game path can be arbitrarily long; it must not set the minimum
+        # width of the entire window after a game is selected.
+        self.lbl_game_dir.setSizePolicy(
+            QtWidgets.QSizePolicy.Policy.Ignored,
+            QtWidgets.QSizePolicy.Policy.Preferred,
         )
 
         self.exec_list = (
@@ -2646,16 +2687,37 @@ class GamescopeManager(
             "Cierre Steam antes de continuar."
         )
 
+    def showEvent(self, event):
+        super().showEvent(event)
+        handle = self.windowHandle()
+        if handle and not getattr(self, "_screen_connected", False):
+            handle.screenChanged.connect(self._screen_changed)
+            self._screen_connected = True
+
+    def _screen_changed(self, screen):
+        if screen:
+            available = screen.availableGeometry()
+            self.setMaximumSize(max(1, available.width() - 40),
+                                max(1, available.height() - 40))
+            self._fit_layout()
+
     def resizeEvent(self, event):
         super().resizeEvent(event)
         if getattr(self, "_responsive_ready", False):
             self._fit_layout()
 
     def _fit_layout(self):
-        height = self.height()
+        screen = self.screen()
+        usable_height = screen.availableGeometry().height() - 40 if screen else self.height()
+        # The content can ask Qt to grow the window when a slider appears.
+        # Bound the geometry calculation to the actual usable screen height
+        # so that growth never increases the controls' minimum sizes again.
+        height = min(self.height(), usable_height)
         width = self.width()
         # Keep the original proportions whenever the window has room.
-        factor = max(0.47, min(1.0, (height - 480) / 520))
+        factor = max(0.35, min(1.0, (height - 480) / 520))
+        if width < 1100:
+            factor = min(factor, 0.35)
         self.img_label.setFixedHeight(round(200 * factor))
         self._fit_game_image()
         for button in (self.btn_fsr, self.btn_nis, self.btn_nearest):
@@ -2826,6 +2888,8 @@ class GamescopeManager(
 
     def update_scaling_ui(self):
 
+        window_size = self.size()
+
         is_fsr = (
             self.scaling_mode == "fsr"
         )
@@ -2857,6 +2921,12 @@ class GamescopeManager(
         self.nis_slider.setEnabled(
             is_nis
         )
+
+        if getattr(self, "_responsive_ready", False):
+            self._fit_layout()
+            # Qt may apply a pending size hint after showing a slider. Keep
+            # the user's chosen window size once that layout pass completes.
+            QtCore.QTimer.singleShot(0, lambda: self.resize(window_size))
 
     # ============================================================
     # RESET ESCALADO
@@ -3541,7 +3611,7 @@ class GamescopeManager(
 
         self.current_game = game
 
-        self.lbl_game_dir.setText(
+        self.lbl_game_dir.set_path(
             game["game_dir"]
         )
 
@@ -3969,7 +4039,7 @@ def main():
     )
 
     app.setApplicationDisplayName(
-        "Steam Command Gen v3.2.7"
+        "Steam Command Gen v3.2.8"
     )
 
     win = (
