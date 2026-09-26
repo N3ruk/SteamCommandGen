@@ -2698,17 +2698,37 @@ class GamescopeManager(
             self._fit_layout()
 
     def _fit_layout(self):
-        screen = self.screen()
-        usable_height = screen.availableGeometry().height() - 40 if screen else self.height()
-        # The content can ask Qt to grow the window when a slider appears.
-        # Bound the geometry calculation to the actual usable screen height
-        # so that growth never increases the controls' minimum sizes again.
-        height = min(self.height(), usable_height)
+        if getattr(self, "_fitting_layout", False):
+            return
+        self._fitting_layout = True
+        try:
+            self._fit_layout_to_height()
+        finally:
+            self._fitting_layout = False
+
+    def _fit_layout_to_height(self):
+        # Font metrics and desktop panels change the minimum height. Measure
+        # the complete layout after each adjustment instead of estimating it
+        # from the screen resolution alone.
+        usable_height = min(self.height(), self.maximumHeight())
         width = self.width()
         # Keep the original proportions whenever the window has room.
-        factor = max(0.35, min(1.0, (height - 480) / 520))
+        factor = max(0.35, min(1.0, (usable_height - 480) / 520))
         if width < 1100:
             factor = min(factor, 0.35)
+        for _ in range(16):
+            self._set_layout_scale(factor, width)
+            excess = self.main_layout.minimumSize().height() - usable_height
+            if excess <= 0 or factor <= 0.20:
+                break
+            factor = max(0.20, factor - max(0.04, excess / 450))
+
+        # If a minimum-size hint grew the window before the new layout took
+        # effect, bring it back inside the screen's usable area.
+        if self.height() > self.maximumHeight():
+            self.resize(self.width(), self.maximumHeight())
+
+    def _set_layout_scale(self, factor, width):
         self.img_label.setFixedHeight(round(200 * factor))
         self._fit_game_image()
         for button in (self.btn_fsr, self.btn_nis, self.btn_nearest):
@@ -2903,6 +2923,9 @@ class GamescopeManager(
 
         if getattr(self, "_responsive_ready", False):
             self._fit_layout()
+            # Qt can post another size-hint update when the stacked page
+            # changes. Recheck the actual minimum after that layout pass.
+            QtCore.QTimer.singleShot(0, self._fit_layout)
 
     # ============================================================
     # RESET ESCALADO
