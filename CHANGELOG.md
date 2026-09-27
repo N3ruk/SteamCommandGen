@@ -4,6 +4,13 @@ Todos los cambios relevantes de **Steam Command Gen** quedan documentados en est
 
 ---
 
+## [3.9.0] - 2026-09-27
+
+* Añadido «Modo Steam Deck» junto a HDR, VRR y Baja Latencia. Al activarlo, Gamescope arranca sin `LD_PRELOAD` y se restablece el valor para `%command%`.
+* Al abrir las opciones de lanzamiento de otro juego, la casilla refleja si ese modo ya estaba configurado. Desactivado, los comandos mantienen su formato previo.
+
+---
+
 ## [3.2.8] - 2026-09-26
 
 * Corregido el crecimiento de la ventana tras cargar juegos y mostrar los controles de nitidez FSR/NIS. Las rutas largas y los títulos largos ya no fuerzan el tamaño de la ventana.

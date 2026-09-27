@@ -2,7 +2,7 @@
 
 **SteamCommandGen** is a graphical **Gamescope configuration tool for Steam on Linux**. It helps you build, apply and manage Steam launch options for **AMD FSR, NVIDIA NIS, HDR, VRR / Adaptive Sync, MangoHud, resolution scaling and low-latency options** without manually writing long Gamescope commands.
 
-> Current version: **SteamCommandGen v3.2.6**
+> Current version: **SteamCommandGen v3.9.0**
 > Español: **[README_ES.md](README_ES.md)**
 
 ![SteamCommandGen screenshot](assets/screenshots/main.png)
@@ -25,6 +25,7 @@ It is useful if you want a **Gamescope GUI for Linux**, a visual **Steam launch 
 - **HDR** support.
 - **VRR / Adaptive Sync** support.
 - **Immediate Flips / low-latency** option.
+- **Steam Deck mode**: starts Gamescope without the inherited `LD_PRELOAD` and restores it for the game.
 - **MangoHud / MangoApp** integration.
 - Built-in `MangoHud.conf` editor and preview.
 - `WINEDLLOVERRIDES` support.
@@ -55,6 +56,16 @@ gamescope -w 1920 -h 1080 -W 2560 -H 1440 -F fsr --sharpness 0 -f -- %command%
 ```text
 gamescope -w 1920 -h 1080 -W 2560 -H 1440 -F nis --sharpness 0 --mangoapp -f -- %command%
 ```
+
+### Steam Deck mode
+
+Enable the “Modo Steam Deck” checkbox to generate Steam launch options in this form (Gamescope options still follow your selected controls):
+
+```text
+env -u LD_PRELOAD gamescope -w 1280 -h 720 -W 1920 -H 1080 --immediate-flips -F nis --sharpness 0 --mangoapp -f -- env LD_PRELOAD="$LD_PRELOAD" %command%
+```
+
+The checkbox is restored when reading a game's saved launch options. Leave it off for the original command format.
 
 ### HDR + VRR example
 
@@ -128,7 +139,7 @@ Download the latest build from **[GitHub Releases](../../releases)**.
 ### Debian / Ubuntu package
 
 ```bash
-sudo apt install ./SteamCommandGen_3.2.6_amd64.deb
+sudo apt install ./SteamCommandGen_3.9.0_amd64.deb
 ```
 
 ### Installer script
@@ -141,8 +152,8 @@ cd src
 ### AppImage
 
 ```bash
-chmod +x SteamCommandGen-3.2.6-x86_64.AppImage
-./SteamCommandGen-3.2.6-x86_64.AppImage
+chmod +x SteamCommandGen-3.9.0-x86_64.AppImage
+./SteamCommandGen-3.9.0-x86_64.AppImage
 ```
 
 On SteamOS, use the AppImage or the user installer. The installer creates its own Python environment and needs an internet connection on the first run. Do not run it with `sudo`.

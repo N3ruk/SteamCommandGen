@@ -74,6 +74,7 @@ class WindowGeometryTest(unittest.TestCase):
                             for control in (
                                     window.btn_fsr, window.btn_nis, window.btn_nearest,
                                     window.btn_mangohud, window.btn_mangohud_config,
+                                    window.chk_steamdeck,
                                     window.sharpness_labels.currentWidget(),
                                     window.sharpness_controls.currentWidget(),
                                     window.sharpness_slider if index % 3 == 0

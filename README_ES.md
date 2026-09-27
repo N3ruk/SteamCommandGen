@@ -4,7 +4,7 @@
 
 Permite configurar de forma sencilla y visual resoluciones, tecnologías de escalado, nitidez, HDR, VRR, baja latencia, `WINEDLLOVERRIDES` y MangoHud, generando automáticamente las `LaunchOptions` necesarias para cada juego.
 
-> Versión actual: **SteamCommandGen v3.2.6**
+> Versión actual: **SteamCommandGen v3.9.0**
 
 ![SteamCommandGen Screenshot](assets/screenshots/main.png)
 
@@ -28,6 +28,7 @@ Permite configurar de forma sencilla y visual resoluciones, tecnologías de esca
 * 🌈 Soporte para **HDR**.
 * ⚡ Soporte para **VRR / Adaptive Sync**.
 * 🚀 Soporte para **Immediate Flips / baja latencia**.
+* 🎮 Modo Steam Deck: ejecuta Gamescope sin el `LD_PRELOAD` heredado y lo recupera para el juego.
 * 🔧 Soporte para `WINEDLLOVERRIDES`.
 * 🔄 Lectura y restauración automática de las **Steam LaunchOptions** existentes.
 * 🧹 Limpieza de LaunchOptions desde la propia aplicación.
@@ -143,6 +144,16 @@ gamescope -w 1920 -h 1080 -W 2560 -H 1440 --hdr-enabled --adaptive-sync -f -- %c
 
 > **VRR / Adaptive Sync** e **Immediate Flips** se gestionan como opciones mutuamente excluyentes.
 
+### Modo Steam Deck
+
+Activa la casilla «Modo Steam Deck» para generar opciones de lanzamiento con esta estructura (las opciones de Gamescope dependen de los controles seleccionados):
+
+```text
+env -u LD_PRELOAD gamescope -w 1280 -h 720 -W 1920 -H 1080 --immediate-flips -F nis --sharpness 0 --mangoapp -f -- env LD_PRELOAD="$LD_PRELOAD" %command%
+```
+
+Al cambiar de juego, la casilla refleja el comando que ya esté guardado en Steam. Sin la casilla, se genera el formato normal.
+
 ---
 
 # 📦 Instalación
@@ -152,7 +163,7 @@ La versión más reciente está en **[Releases](../../releases)**.
 ## Paquete `.deb`
 
 ```bash
-sudo apt install ./SteamCommandGen_3.2.6_amd64.deb
+sudo apt install ./SteamCommandGen_3.9.0_amd64.deb
 ```
 
 ## Script instalador
@@ -165,8 +176,8 @@ cd src
 ## AppImage
 
 ```bash
-chmod +x SteamCommandGen-3.2.6-x86_64.AppImage
-./SteamCommandGen-3.2.6-x86_64.AppImage
+chmod +x SteamCommandGen-3.9.0-x86_64.AppImage
+./SteamCommandGen-3.9.0-x86_64.AppImage
 ```
 
 En SteamOS usa el AppImage o el instalador de usuario. El instalador crea su propio entorno Python, requiere internet en la primera instalación y debe ejecutarse **sin `sudo`**.

@@ -575,7 +575,8 @@ def build_gamescope_command(opts):
     # --------------------------------------------------------
 
     cmd.append(
-        "-- %command%"
+        '-- env LD_PRELOAD="$LD_PRELOAD" %command%'
+        if opts.get("steamdeck") else "-- %command%"
     )
 
     final = " ".join(cmd)
@@ -601,7 +602,10 @@ def build_gamescope_command(opts):
         )
 
     if env_prefix:
-        return f"{' '.join(env_prefix)} {final}"
+        final = f"{' '.join(env_prefix)} {final}"
+
+    if opts.get("steamdeck"):
+        final = f"env -u LD_PRELOAD {final}"
 
     return final
 
@@ -2000,6 +2004,13 @@ class GamescopeManager(
             )
         )
 
+        self.chk_steamdeck = (
+            QtWidgets.QCheckBox("Modo Steam Deck")
+        )
+        self.chk_steamdeck.setToolTip(
+            "Inicia Gamescope sin LD_PRELOAD y lo restaura para el juego."
+        )
+
         # ====================================================
         # CONEXIONES DE COMPATIBILIDAD
         # ====================================================
@@ -2442,6 +2453,10 @@ class GamescopeManager(
 
         display_checks.addWidget(
             self.chk_immediate
+        )
+
+        display_checks.addWidget(
+            self.chk_steamdeck
         )
 
         display_options_layout.addWidget(
@@ -3010,6 +3025,10 @@ class GamescopeManager(
             False
         )
 
+        self.chk_steamdeck.setChecked(
+            False
+        )
+
         self.btn_mangohud.setChecked(
             False
         )
@@ -3113,6 +3132,7 @@ class GamescopeManager(
             "hdr": False,
             "vrr": False,
             "immediate": False,
+            "steamdeck": False,
 
             "winedll": "",
 
@@ -3262,6 +3282,11 @@ class GamescopeManager(
             "--immediate-flips" in cmd
         )
 
+        result["steamdeck"] = bool(re.search(
+            r'(?:^|\s)env\s+-u\s+LD_PRELOAD\s+gamescope(?:\s|$)',
+            cmd,
+        ))
+
         result["mangohud"] = (
             "--mangoapp" in cmd
         )
@@ -3361,6 +3386,10 @@ class GamescopeManager(
 
         self.chk_immediate.setChecked(
             opts["immediate"]
+        )
+
+        self.chk_steamdeck.setChecked(
+            opts["steamdeck"]
         )
 
         # ====================================================
@@ -3778,6 +3807,10 @@ class GamescopeManager(
                 self.chk_immediate.isChecked()
             ),
 
+            "steamdeck": (
+                self.chk_steamdeck.isChecked()
+            ),
+
             "winedll": (
                 self.txt_winedll.text().strip()
             ),
@@ -4048,7 +4081,7 @@ def main():
     )
 
     app.setApplicationDisplayName(
-        "Steam Command Gen v3.2.8"
+        "Steam Command Gen v3.9.0"
     )
 
     win = (
